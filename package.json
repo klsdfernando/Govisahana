@@ -1,0 +1,28 @@
+{
+  "name": "govisahana",
+  "version": "1.0.0",
+  "description": "GoviSahana • Cultivating knowledge, together — Sri Lankan Agritech Platform",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "server": "node server/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.1",
+    "nodemailer": "^10.1.1",
+    "resend": "^6.32.1"
+  },
+  "keywords": [
+    "agritech",
+    "sri-lanka",
+    "agriculture",
+    "farmer",
+    "advisory"
+  ],
+  "author": "GoviSahana Team",
+  "license": "ISC"
+}

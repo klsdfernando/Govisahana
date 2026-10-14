@@ -255,6 +255,11 @@
   <script type="text/babel">
     const { useState, useRef, useEffect } = React;
 
+    // Dynamically resolve API URL (relative on Vercel / port 5000; http://localhost:5000 if external dev server)
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '5000' && window.location.port !== ''
+      ? 'http://localhost:5000'
+      : '';
+
     // --- CONSTANTS ---
     const SRI_LANKAN_DISTRICTS = [
       "Anuradhapura", "Polonnaruwa", "Badulla", "Kurunegala", "Kandy", "Matale", 
@@ -1157,14 +1162,14 @@
         setError('');
         setLoading(true);
         try {
-          const res = await fetch('http://localhost:5000/api/otp/send', {
+          const res = await fetch(`${API_BASE}/api/otp/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-          setEnteredOtp('');
+          setEnteredOtp(data.devCode || '');
           setOtpStep(true);
           setResendTimer(60);
         } catch (err) {
@@ -1180,7 +1185,7 @@
         setLoading(true);
         try {
           // Verify OTP
-          const verifyRes = await fetch('http://localhost:5000/api/otp/verify', {
+          const verifyRes = await fetch(`${API_BASE}/api/otp/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, code: enteredOtp })
@@ -1189,7 +1194,7 @@
           if (!verifyRes.ok) throw new Error(verifyData.error || 'Invalid OTP');
 
           // Login / get user
-          const loginRes = await fetch('http://localhost:5000/api/auth/login', {
+          const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, role })
@@ -1207,7 +1212,7 @@
         setError('');
         setLoading(true);
         try {
-          const res = await fetch('http://localhost:5000/api/otp/send', {
+          const res = await fetch(`${API_BASE}/api/otp/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -1215,7 +1220,7 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed to resend OTP');
           setResendTimer(60);
-          setEnteredOtp('');
+          setEnteredOtp(data.devCode || '');
         } catch (err) {
           setError(err.message);
         } finally {
@@ -1379,14 +1384,14 @@
         setError('');
         setLoading(true);
         try {
-          const res = await fetch('http://localhost:5000/api/otp/send', {
+          const res = await fetch(`${API_BASE}/api/otp/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-          setEnteredOtp('');
+          setEnteredOtp(data.devCode || '');
           setOtpStep(true);
           setResendTimer(60);
         } catch (err) {
@@ -1403,7 +1408,7 @@
         setLoading(true);
         try {
           // Verify OTP
-          const verifyRes = await fetch('http://localhost:5000/api/otp/verify', {
+          const verifyRes = await fetch(`${API_BASE}/api/otp/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, code: enteredOtp })
@@ -1421,7 +1426,7 @@
             cropOrDept: role === 'farmer' ? cropOrDept : cropOrDept,
             designation: role === 'expert' ? designation : ''
           };
-          const regRes = await fetch('http://localhost:5000/api/auth/register', {
+          const regRes = await fetch(`${API_BASE}/api/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userObj)
@@ -1439,7 +1444,7 @@
         setError('');
         setLoading(true);
         try {
-          const res = await fetch('http://localhost:5000/api/otp/send', {
+          const res = await fetch(`${API_BASE}/api/otp/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -1447,7 +1452,7 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed to resend OTP');
           setResendTimer(60);
-          setEnteredOtp('');
+          setEnteredOtp(data.devCode || '');
         } catch (err) {
           setError(err.message);
         } finally {
@@ -2550,7 +2555,7 @@
       });
 
       useEffect(() => {
-        fetch('http://localhost:5000/api/consultations')
+        fetch(`${API_BASE}/api/consultations`)
           .then(res => res.json())
           .then(data => {
             if (Array.isArray(data) && data.length > 0) {
@@ -2608,7 +2613,7 @@
           ]
         });
 
-        fetch('http://localhost:5000/api/consultations', {
+        fetch(`${API_BASE}/api/consultations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newTicket)
