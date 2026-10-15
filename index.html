@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -561,38 +561,85 @@
       {
         id: "exp_1",
         name: "Dr. Nimal Jayasinghe",
+        email: "nimal@govisahana.lk",
         title: "Senior Agronomist & Plant Pathologist",
         department: "Department of Agriculture - Peradeniya",
         specialization: "Crop Pest & Disease Control",
         avatar: "https://raw.githubusercontent.com/emucharuka/Govisahana/main/src/assets/agricultural_expert.png"
+      },
+      {
+        id: "exp_2",
+        name: "Mrs. Priyanthi Bandara",
+        email: "priyanthi@govisahana.lk",
+        title: "Soil Fertility & Nutrient Specialist",
+        department: "Rice Research & Development Institute (RRDI) - Batalagoda",
+        specialization: "Soil Health & Fertilizer Management",
+        avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80"
+      },
+      {
+        id: "exp_3",
+        name: "Mr. K. Shanmugam",
+        email: "shanmugam@govisahana.lk",
+        title: "Up-Country Vegetable Specialist",
+        department: "Agricultural Extension Office - Nuwara Eliya",
+        specialization: "Horticulture & Greenhouse Tech",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
       }
     ];
 
     const INITIAL_CONSULTATIONS = [
       {
+        _id: "con_101",
         id: "con_101",
         ticketId: "GS-2026-089",
+        farmerEmail: "sunil@farmer.lk",
         farmerName: "Sunil Rathnayake",
         farmerDistrict: "Anuradhapura",
+        farmerPhone: "+94 77 555 1212",
         title: "Yellowing leaves & brown spots in Maha season paddy crop",
         cropType: "paddy",
         cropLabel: "Paddy / Rice",
         description: "Leaves on my 3-acre paddy field near Kekirawa are turning yellowish brown with elongated dark spots after heavy evening rain.",
         status: "In Progress",
-        assignedExpert: EXPERT_PROFILES[0],
+        assignedExpertId: "exp_1",
+        assignedExpertName: "Dr. Nimal Jayasinghe",
+        assignedExpertEmail: "nimal@govisahana.lk",
         sampleImage: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80"
       },
       {
+        _id: "con_102",
         id: "con_102",
+        ticketId: "GS-2026-074",
+        farmerEmail: "sunil@farmer.lk",
+        farmerName: "Sunil Rathnayake",
+        farmerDistrict: "Anuradhapura",
+        farmerPhone: "+94 77 555 1212",
+        title: "Whitefly infestation on Green Chili plants",
+        cropType: "vegetables",
+        cropLabel: "Low-Country Vegetables",
+        description: "Tiny white flies underneath the chili leaves causing leaf curl and stunted growth. Looking for immediate guidance.",
+        status: "Pending",
+        assignedExpertId: null,
+        assignedExpertName: null,
+        assignedExpertEmail: null,
+        sampleImage: "https://images.unsplash.com/photo-1592417817098-8f3d6eb19657?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        _id: "con_103",
+        id: "con_103",
         ticketId: "GS-2026-092",
+        farmerEmail: "kamal@farmer.lk",
         farmerName: "Kamal Perera",
         farmerDistrict: "Kurunegala",
-        title: "Leaf curling & caterpillar damage on young coconut fronds",
+        farmerPhone: "+94 71 444 8899",
+        title: "Leaf curling & caterpillar damage on young coconut palms",
         cropType: "coconut",
         cropLabel: "Coconut",
-        description: "Lower leaves of young coconut palm trees showing scorched appearance and dried webbing.",
-        status: "Pending",
-        assignedExpert: EXPERT_PROFILES[0],
+        description: "Lower leaves of 2-year old coconut palm trees showing scorched appearance and dried webbing from caterpillars.",
+        status: "In Progress",
+        assignedExpertId: "exp_2",
+        assignedExpertName: "Mrs. Priyanthi Bandara",
+        assignedExpertEmail: "priyanthi@govisahana.lk",
         sampleImage: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80"
       }
     ];
@@ -601,34 +648,47 @@
       "con_101": [
         {
           id: "msg_1",
+          _id: "msg_1",
+          consultationId: "con_101",
           senderName: "Sunil Rathnayake",
           senderRole: "farmer",
-          text: "Hello Doctor! Please help me inspect these paddy leaves. The leaf tips are drying and turned dark brown after rain.",
+          senderEmail: "sunil@farmer.lk",
+          text: "Ayubowan Doctor! Leaves on my paddy crop are showing severe yellowing after recent heavy rains.",
           image: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80",
-          timestamp: "08:00 AM",
-          type: "user"
+          timestamp: "08:00 AM"
+        },
+        {
+          id: "msg_sys_1",
+          _id: "msg_sys_1",
+          consultationId: "con_101",
+          senderName: "GoviSahana Desk",
+          senderRole: "system",
+          senderEmail: "system@govisahana.lk",
+          text: "👨‍🌾 Dr. Nimal Jayasinghe (Extension Desk) has accepted this case. Chat room is now active.",
+          timestamp: "08:05 AM"
         },
         {
           id: "msg_2",
+          _id: "msg_2",
+          consultationId: "con_101",
           senderName: "Dr. Nimal Jayasinghe",
           senderRole: "expert",
-          text: "Hello Mr. Sunil! This symptom pattern strongly indicates early-stage Paddy Blast (Magnaporthe oryzae). I have issued a digital prescription below for your agrarian center.",
-          timestamp: "08:05 AM",
-          type: "expert"
-        },
+          senderEmail: "nimal@govisahana.lk",
+          text: "Hello Mr. Sunil! I have reviewed your photos. The spindle-shaped lesions indicate early Paddy Blast. Please check the remedy card below.",
+          timestamp: "08:10 AM"
+        }
+      ],
+      "con_102": [
         {
-          id: "msg_3",
-          senderName: "Dr. Nimal Jayasinghe",
-          senderRole: "expert",
-          prescription: {
-            title: "Recommended Remedial Action Plan",
-            treatment: "Spray Tricyclazole 75% WP or Edifenphos 50% EC",
-            dosage: "0.6 grams per 1 Liter of clean water",
-            timing: "Apply early morning before 9:00 AM. Avoid rainy conditions."
-          },
-          text: "Please present this digital prescription card at your local Agrarian Service Center.",
-          timestamp: "08:06 AM",
-          type: "prescription"
+          id: "msg_init_102",
+          _id: "msg_init_102",
+          consultationId: "con_102",
+          senderName: "Sunil Rathnayake",
+          senderRole: "farmer",
+          senderEmail: "sunil@farmer.lk",
+          text: "Consultation Ticket Created: Tiny white flies underneath the chili leaves causing leaf curl and stunted growth. Looking for immediate guidance.",
+          image: "https://images.unsplash.com/photo-1592417817098-8f3d6eb19657?auto=format&fit=crop&w=800&q=80",
+          timestamp: "09:00 AM"
         }
       ]
     };
@@ -1254,6 +1314,59 @@
               </div>
             </div>
 
+            {/* Quick Testing & Demo Login Panel */}
+            <div className={`p-3.5 rounded-2xl border text-xs space-y-2 ${isDark ? 'bg-emerald-950/50 border-emerald-600/30' : 'bg-amber-50/80 border-amber-200'}`}>
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-[11px] opacity-80">⚡ One-Click Testing Accounts:</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">Demo Ready</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onLoginSuccess({
+                    name: 'Dr. Nimal Jayasinghe',
+                    email: 'nimal@govisahana.lk',
+                    role: 'expert',
+                    district: 'Kandy',
+                    cropOrDept: 'Senior Agronomist & Plant Pathologist'
+                  })}
+                  className="px-2.5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-xl text-left text-[11px] transition shadow-sm flex items-center gap-1.5"
+                >
+                  <span>👨‍🌾</span>
+                  <span className="truncate">Dr. Nimal (Expert 1)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLoginSuccess({
+                    name: 'Mrs. Priyanthi Bandara',
+                    email: 'priyanthi@govisahana.lk',
+                    role: 'expert',
+                    district: 'Kurunegala',
+                    cropOrDept: 'Soil Fertility & Nutrient Specialist'
+                  })}
+                  className="px-2.5 py-2 bg-amber-800 hover:bg-amber-700 text-white font-bold rounded-xl text-left text-[11px] transition shadow-sm flex items-center gap-1.5"
+                >
+                  <span>👩‍🌾</span>
+                  <span className="truncate">Mrs. Priyanthi (Expert 2)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLoginSuccess({
+                    name: 'Sunil Rathnayake',
+                    email: 'sunil@farmer.lk',
+                    role: 'farmer',
+                    district: 'Anuradhapura',
+                    phone: '+94 77 555 1212',
+                    cropOrDept: 'Paddy / Rice'
+                  })}
+                  className="px-2.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-left text-[11px] transition shadow-sm col-span-1 sm:col-span-2 flex items-center gap-1.5"
+                >
+                  <span>🌾</span>
+                  <span className="truncate">Sunil Rathnayake (Farmer Member)</span>
+                </button>
+              </div>
+            </div>
+
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-4 py-3 rounded-xl">
@@ -1866,9 +1979,10 @@
                   filteredConsultations.map(item => {
                     const isResolved = item.status === 'Resolved';
                     const isPending = item.status === 'Pending';
+                    const activeId = item._id || item.id;
                     return (
                       <div 
-                        key={item.id} 
+                        key={activeId} 
                         className={`p-5 rounded-2xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-emerald-500/50 hover:shadow-md group ${
                           themeMode === 'light' ? 'border-slate-200 bg-white/80' : 'border-emerald-500/20 bg-emerald-950/30'
                         }`}
@@ -1892,17 +2006,17 @@
                               }`}>
                                 {item.ticketId}
                               </span>
-                              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
+                              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20">
                                 {item.cropLabel}
                               </span>
                               <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
                                 isResolved 
-                                  ? 'bg-blue-500/10 text-blue-800 border-blue-500/30' 
-                                  : isPending 
-                                  ? 'bg-amber-500/10 text-amber-800 border-amber-500/30' 
-                                  : 'bg-emerald-500/10 text-emerald-800 border-emerald-500/30'
+                                  ? 'bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-500/30' 
+                                  : item.assignedExpertName 
+                                  ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30' 
+                                  : 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
                               }`}>
-                                {item.status}
+                                {isResolved ? '✅ Resolved' : item.assignedExpertName ? `👨‍🌾 Connected: ${item.assignedExpertName}` : '⏳ Waiting for Agronomist'}
                               </span>
                             </div>
 
@@ -1916,8 +2030,8 @@
                         </div>
 
                         <button
-                          onClick={() => { onSelectConsultation(item.id); setActiveView('consultation_room'); }}
-                          className="px-5 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md transition-all duration-200 flex items-center justify-center gap-2 shrink-0 group-hover:bg-emerald-600"
+                          onClick={() => { onSelectConsultation(activeId); setActiveView('consultation_room'); }}
+                          className="px-5 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md transition-all duration-200 flex items-center justify-center gap-2 shrink-0 group-hover:bg-emerald-600 cursor-pointer"
                         >
                           <span>{t.btnJoinChatRoom}</span>
                           <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -1937,7 +2051,7 @@
     function NewTicketModal({ isOpen, onClose, onSubmitTicket, currentUser, currentLanguage }) {
       const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.en;
       const [title, setTitle] = useState('');
-      const [cropType, setCropType] = useState('Paddy / Rice (à·€à·“)');
+      const [cropType, setCropType] = useState('Paddy / Rice (වී)');
       const [description, setDescription] = useState('');
       const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -1956,19 +2070,19 @@
         e.preventDefault();
         if (!title || !description) return;
         onSubmitTicket({
-          id: `con_${Date.now()}`,
-          ticketId: `GS-2026-${Math.floor(100 + Math.random() * 900)}`,
-          farmerName: currentUser?.name || 'Sunil Rathnayake',
-          farmerDistrict: currentUser?.district || 'Anuradhapura',
           title,
           cropType: 'crop',
           cropLabel: cropType,
           description,
-          status: 'In Progress',
-          assignedExpert: EXPERT_PROFILES[0],
-          createdAt: 'Just now',
-          sampleImage: photoPreview || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80'
+          sampleImage: photoPreview || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80',
+          farmerName: currentUser?.name || 'Farmer Member',
+          farmerEmail: currentUser?.email || '',
+          farmerDistrict: currentUser?.district || 'Anuradhapura',
+          farmerPhone: currentUser?.phone || ''
         });
+        setTitle('');
+        setDescription('');
+        setPhotoPreview(null);
         onClose();
       };
 
@@ -2021,31 +2135,102 @@
       );
     }
 
-    // --- CONSULTATION ROOM WITH PRESCRIPTION GENERATOR & PRINT SUPPORT ---
-    function ConsultationRoom({ consultation, messages, onSendMessage, onMarkResolved, onBackToDashboard, currentUser, currentLanguage }) {
+    // --- CONSULTATION ROOM WITH SINGLE-EXPERT ACCESS CONTROL & REAL-TIME POLL ---
+    function ConsultationRoom({ consultation, onSendMessage, onClaimTicket, onReleaseTicket, onIssuePrescription, onMarkResolved, onBackToDashboard, currentUser, currentLanguage, themeMode }) {
       const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.en;
+      const isDark = themeMode === 'dark';
+      const messagesEndRef = useRef(null);
+
       const [text, setText] = useState('');
       const [photo, setPhoto] = useState(null);
+      const [sending, setSending] = useState(false);
       const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
       const [prescriptionDiagnosis, setPrescriptionDiagnosis] = useState('');
       const [prescriptionTreatment, setPrescriptionTreatment] = useState('');
       const [prescriptionDosage, setPrescriptionDosage] = useState('');
       const [prescriptionTiming, setPrescriptionTiming] = useState('');
 
-      const handleSend = (e) => {
+      const [currentConsultation, setCurrentConsultation] = useState(consultation || {});
+      const [messages, setMessages] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
+
+      const activeId = consultation?._id || consultation?.id || '';
+      const isExpert = currentUser?.role === 'expert';
+      const isFarmer = currentUser?.role === 'farmer';
+
+      const currentEmail = (currentUser?.email || '').toLowerCase().trim();
+      const assignedEmail = (currentConsultation?.assignedExpertEmail || '').toLowerCase().trim();
+
+      const isUnassigned = !assignedEmail || currentConsultation?.status === 'Pending';
+      const isClaimedByMe = isExpert && assignedEmail && assignedEmail === currentEmail;
+      const isClaimedByOther = isExpert && assignedEmail && assignedEmail !== currentEmail;
+
+      // Real-time polling function
+      const syncChatData = async () => {
+        if (!activeId) return;
+        try {
+          const [msgRes, conRes] = await Promise.all([
+            fetch(`${API_BASE}/api/consultations/${activeId}/messages`),
+            fetch(`${API_BASE}/api/consultations/${activeId}`)
+          ]);
+          if (msgRes.ok) {
+            const msgData = await msgRes.json();
+            if (Array.isArray(msgData)) setMessages(msgData);
+          }
+          if (conRes.ok) {
+            const conData = await conRes.json();
+            if (conData && (conData._id || conData.id)) setCurrentConsultation(conData);
+          }
+        } catch (err) {
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        setIsLoading(true);
+        syncChatData();
+        const timer = setInterval(syncChatData, 2500);
+        return () => clearInterval(timer);
+      }, [activeId]);
+
+      useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [messages]);
+
+      const handleSend = async (e) => {
         e.preventDefault();
-        if (!text.trim() && !photo) return;
-        onSendMessage(consultation.id, {
-          id: `msg_${Date.now()}`,
-          senderName: currentUser?.name || 'Sunil Rathnayake',
+        if ((!text.trim() && !photo) || sending) return;
+        if (isClaimedByOther) return; // Enforce single-expert lock
+
+        const payload = {
+          senderName: currentUser?.name || 'User',
           senderRole: currentUser?.role || 'farmer',
-          text,
-          image: photo,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          type: 'user'
-        });
+          senderEmail: currentUser?.email || '',
+          text: text.trim(),
+          image: photo
+        };
+
+        setSending(true);
         setText('');
         setPhoto(null);
+
+        // Optimistic append
+        const tempMsg = {
+          id: `temp_${Date.now()}`,
+          _id: `temp_${Date.now()}`,
+          consultationId: activeId,
+          ...payload,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          createdAt: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, tempMsg]);
+
+        const savedMsg = await onSendMessage(activeId, payload);
+        if (savedMsg) {
+          syncChatData();
+        }
+        setSending(false);
       };
 
       const handlePresetSelect = (preset) => {
@@ -2055,60 +2240,165 @@
         setPrescriptionTiming(preset.timing);
       };
 
-      const handleIssuePrescription = (e) => {
+      const handleIssuePrescriptionSubmit = async (e) => {
         e.preventDefault();
         if (!prescriptionDiagnosis || !prescriptionTreatment) return;
-        onSendMessage(consultation.id, {
-          id: `msg_rx_${Date.now()}`,
-          senderName: currentUser?.name || 'Dr. Nimal Jayasinghe',
-          senderRole: 'expert',
-          prescription: {
-            title: `Official Remedy Card: ${prescriptionDiagnosis}`,
-            treatment: prescriptionTreatment,
-            dosage: prescriptionDosage,
-            timing: prescriptionTiming,
-            issuedBy: currentUser?.name || 'Dr. Nimal Jayasinghe',
-            date: new Date().toLocaleDateString()
-          },
-          text: "Official Agronomist Remedy Prescription issued for local Agrarian Service Center.",
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          type: 'prescription'
-        });
-        setIsPrescriptionModalOpen(false);
+        const rx = {
+          diagnosis: prescriptionDiagnosis,
+          treatment: prescriptionTreatment,
+          dosage: prescriptionDosage,
+          timing: prescriptionTiming,
+          expertName: currentUser?.name || 'Senior Agronomist',
+          expertEmail: currentUser?.email || 'nimal@govisahana.lk'
+        };
+        const ok = await onIssuePrescription(activeId, rx);
+        if (ok) {
+          setIsPrescriptionModalOpen(false);
+          syncChatData();
+        }
       };
 
-      const expert = consultation.assignedExpert || EXPERT_PROFILES[0];
+      const handleClaimClick = async () => {
+        const ok = await onClaimTicket(activeId);
+        if (ok) syncChatData();
+      };
+
+      const handleReleaseClick = async () => {
+        if (!confirm('Are you sure you want to release this consultation back to the open agronomist desk?')) return;
+        const ok = await onReleaseTicket(activeId);
+        if (ok) syncChatData();
+      };
+
+      const expertObj = EXPERT_PROFILES.find(e => e.email?.toLowerCase() === assignedEmail) || EXPERT_PROFILES[0];
+      const expertDisplayName = currentConsultation?.assignedExpertName || expertObj.name;
+      const isResolved = currentConsultation?.status === 'Resolved';
 
       return (
         <div className="h-[calc(100vh-4rem)] flex flex-col">
           
           {/* Header Controls */}
-          <div className="glass-nav border-b border-emerald-500/20 p-4 shadow-sm flex items-center justify-between no-print">
-            <div className="flex items-center gap-3">
-              <button onClick={onBackToDashboard} className="px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold text-xs hover:bg-emerald-700/10 transition">{t.chatDashboardBack}</button>
-              <div className="flex items-center gap-3 border-l border-emerald-500/20 pl-3">
-                <img src={expert.avatar} alt={expert.name} className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500" />
-                <div>
-                  <h3 className="font-extrabold text-sm">{expert.name} <span className="text-[10px] bg-emerald-700/20 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30">{t.chatOfficerBadge}</span></h3>
-                  <p className="text-xs opacity-70">{expert.specialization} â€¢ {expert.department}</p>
-                </div>
+          <div className="glass-nav border-b border-emerald-500/20 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button 
+                onClick={onBackToDashboard} 
+                className="px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold text-xs hover:bg-emerald-700/10 transition shrink-0"
+              >
+                {t.chatDashboardBack}
+              </button>
+
+              <div className="flex items-center gap-2.5 border-l border-emerald-500/20 pl-3">
+                {currentConsultation?.assignedExpertName ? (
+                  <div className="flex items-center gap-2.5">
+                    <img 
+                      src={expertObj.avatar} 
+                      alt={expertDisplayName} 
+                      className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shadow shrink-0" 
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-extrabold text-sm">{expertDisplayName}</h3>
+                        <span className="text-[10px] bg-emerald-700/20 text-emerald-500 px-1.5 py-0.2 rounded border border-emerald-500/30 font-bold">
+                          {t.chatOfficerBadge}
+                        </span>
+                        {isClaimedByMe && (
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-extrabold px-1.5 py-0.2 rounded border border-emerald-500/40">
+                            Assigned to You
+                          </span>
+                        )}
+                        {isClaimedByOther && (
+                          <span className="text-[10px] bg-red-500/20 text-red-400 font-extrabold px-1.5 py-0.2 rounded border border-red-500/40 flex items-center gap-1">
+                            🔒 Locked to Colleague
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] opacity-70">
+                        {currentConsultation?.ticketId} • {currentConsultation?.cropLabel || 'Crop'} • {currentConsultation?.farmerDistrict} District
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center font-black text-sm border border-amber-500/40">
+                      ⏳
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-sm text-amber-400">Waiting for Agricultural Specialist</h3>
+                      <p className="text-[11px] opacity-70">Ticket: {currentConsultation?.ticketId} • Farmer: {currentConsultation?.farmerName}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {currentUser?.role === 'expert' && (
+            {/* Action Bar based on Role & Claim state */}
+            <div className="flex items-center gap-2 self-end sm:self-center flex-wrap">
+              {isExpert && isUnassigned && (
+                <button 
+                  onClick={handleClaimClick} 
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition transform hover:scale-105 flex items-center gap-1.5"
+                >
+                  <span>✋</span>
+                  <span>Claim Consultation</span>
+                </button>
+              )}
+
+              {isExpert && isClaimedByMe && (
                 <>
-                  <button onClick={() => setIsPrescriptionModalOpen(true)} className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow transition">
-                    {t.btnIssuePrescription}
-                  </button>
-                  <button onClick={() => onMarkResolved(consultation.id)} className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow transition">
-                    {t.btnMarkResolved}
+                  {!isResolved && (
+                    <button 
+                      onClick={() => setIsPrescriptionModalOpen(true)} 
+                      className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1"
+                    >
+                      <span>📋</span>
+                      <span>{t.btnIssuePrescription}</span>
+                    </button>
+                  )}
+                  {!isResolved && (
+                    <button 
+                      onClick={() => onMarkResolved(activeId)} 
+                      className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow transition"
+                    >
+                      {t.btnMarkResolved}
+                    </button>
+                  )}
+                  <button 
+                    onClick={handleReleaseClick} 
+                    className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/50 text-red-400 font-bold text-xs rounded-xl border border-red-500/30 transition"
+                    title="Release case back to open agronomist queue"
+                  >
+                    ⇄ Release Case
                   </button>
                 </>
               )}
-              <button onClick={() => alert("Connecting direct voice line with Agronomist...")} className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition">{t.btnVoiceCall}</button>
+
+              <button 
+                onClick={() => alert("Connecting direct voice line with Agronomist Extension Desk...")} 
+                className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1"
+              >
+                <span>📞</span>
+                <span className="hidden sm:inline">{t.btnVoiceCall}</span>
+              </button>
             </div>
           </div>
+
+          {/* Locked / Assigned Banners */}
+          {isClaimedByOther && (
+            <div className="bg-red-950/70 border-b border-red-500/40 px-4 py-2.5 text-center text-xs text-red-200 flex items-center justify-center gap-2">
+              <span className="text-base">🔒</span>
+              <span>
+                <strong>Single Expert Exclusive Case:</strong> This consultation is exclusively assigned to <strong>{currentConsultation.assignedExpertName}</strong> ({currentConsultation.assignedExpertEmail}). You can inspect the record in read-only mode.
+              </span>
+            </div>
+          )}
+
+          {isExpert && isUnassigned && (
+            <div className="bg-amber-950/70 border-b border-amber-500/40 px-4 py-2.5 text-center text-xs text-amber-200 flex items-center justify-center gap-2">
+              <span>⚡</span>
+              <span>
+                <strong>Open Inquiry:</strong> This ticket is currently unassigned. Click <strong>"Claim Consultation"</strong> above or send a message to become the exclusive specialist for this farmer.
+              </span>
+            </div>
+          )}
 
           {/* Main Messages Stream */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 chat-scroll">
@@ -2120,80 +2410,156 @@
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   <span>{t.playVoiceNote}</span>
                 </div>
-                <button onClick={() => alert("Playing audio explanation from Agronomist in Sinhala...")} className="px-3 py-1 bg-emerald-700 text-white font-bold text-xs rounded-lg shadow">â–¶ Play Audio</button>
+                <button 
+                  onClick={() => alert("Playing audio explanation from Agronomist in Sinhala...")} 
+                  className="px-3 py-1 bg-emerald-700 text-white font-bold text-xs rounded-lg shadow hover:bg-emerald-600 transition"
+                >
+                  ▶ Play Audio Note
+                </button>
               </div>
 
-              {messages.map(msg => (
-                msg.type === 'prescription' ? (
-                  <div key={msg.id} className="printable-prescription bg-amber-950/40 border-2 border-amber-500/50 rounded-2xl p-5 shadow-xl max-w-xl mx-auto">
-                    <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-amber-500 bg-amber-950 px-2 py-0.5 rounded border border-amber-700">Official Agronomist Remedy Card</span>
-                        <h4 className="font-black text-amber-300 text-base mt-1">{msg.prescription.title}</h4>
-                      </div>
-                      <button onClick={() => window.print()} className="no-print px-3 py-1 bg-amber-700 text-slate-950 font-black text-xs rounded-lg shadow hover:bg-amber-600 transition">
-                        {t.btnPrintPrescription}
-                      </button>
-                    </div>
+              {isLoading && messages.length === 0 && (
+                <div className="text-center py-8 text-xs font-bold opacity-60">
+                  Loading consultation messages...
+                </div>
+              )}
 
-                    <div className="space-y-2 text-xs">
-                      <div>
-                        <span className="font-extrabold text-amber-400">Target Treatment / Chemical:</span>
-                        <p className="font-bold text-white text-sm bg-amber-950/60 p-2 rounded-xl border border-amber-500/20 mt-0.5">{msg.prescription.treatment}</p>
+              {messages.map((msg, idx) => {
+                const isSys = msg.senderRole === 'system';
+                const isMsgRx = msg.prescription || msg.type === 'prescription';
+                const isMyMessage = (msg.senderEmail && currentUser?.email && msg.senderEmail.toLowerCase() === currentUser.email.toLowerCase()) || 
+                                    (msg.senderRole === currentUser?.role && msg.senderName === currentUser?.name);
+
+                if (isSys) {
+                  return (
+                    <div key={msg._id || msg.id || idx} className="text-center my-2">
+                      <span className="inline-block px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[11px] font-bold text-emerald-300">
+                        {msg.text}
+                      </span>
+                    </div>
+                  );
+                }
+
+                if (isMsgRx) {
+                  const rx = msg.prescription || {};
+                  return (
+                    <div key={msg._id || msg.id || idx} className="printable-prescription bg-amber-950/50 border-2 border-amber-500/60 rounded-2xl p-5 shadow-xl max-w-xl mx-auto">
+                      <div className="flex items-center justify-between border-b border-amber-500/30 pb-3 mb-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-amber-500 bg-amber-950 px-2 py-0.5 rounded border border-amber-700">Official Agronomist Remedy Card</span>
+                          <h4 className="font-black text-amber-300 text-base mt-1">{rx.title || 'Official Remedy'}</h4>
+                        </div>
+                        <button onClick={() => window.print()} className="no-print px-3 py-1 bg-amber-600 text-slate-950 font-black text-xs rounded-lg shadow hover:bg-amber-500 transition">
+                          {t.btnPrintPrescription}
+                        </button>
                       </div>
-                      <div>
-                        <span className="font-extrabold text-amber-400">Mixing Ratio & Dosage:</span>
-                        <p className="font-semibold text-amber-100 opacity-90">{msg.prescription.dosage}</p>
+
+                      <div className="space-y-2.5 text-xs">
+                        <div>
+                          <span className="font-extrabold text-amber-400">Target Treatment / Chemical:</span>
+                          <p className="font-bold text-white text-sm bg-amber-950/70 p-2.5 rounded-xl border border-amber-500/20 mt-0.5">{rx.treatment}</p>
+                        </div>
+                        <div>
+                          <span className="font-extrabold text-amber-400">Mixing Ratio & Dosage:</span>
+                          <p className="font-semibold text-amber-100 opacity-90">{rx.dosage}</p>
+                        </div>
+                        <div>
+                          <span className="font-extrabold text-amber-400">Timing & Safety Warnings:</span>
+                          <p className="font-semibold text-amber-100 opacity-90">{rx.timing}</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-extrabold text-amber-400">Timing & Safety Warnings:</span>
-                        <p className="font-semibold text-amber-100 opacity-90">{msg.prescription.timing}</p>
+
+                      <div className="mt-4 pt-3 border-t border-amber-500/20 flex items-center justify-between text-[11px] font-bold text-amber-400">
+                        <span>Issued By: {rx.expertName || expertDisplayName}</span>
+                        <span>{rx.date || 'Today'}</span>
                       </div>
                     </div>
+                  );
+                }
 
-                    <div className="mt-4 pt-3 border-t border-amber-500/20 flex items-center justify-between text-[11px] font-bold text-amber-400">
-                      <span>Issued By: {msg.prescription.issuedBy || expert.name}</span>
-                      <span>{msg.prescription.date || 'Today'}</span>
+                return (
+                  <div key={msg._id || msg.id || idx} className={`flex ${msg.senderRole === 'farmer' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-md rounded-2xl p-3.5 shadow-md ${
+                      msg.senderRole === 'farmer' 
+                        ? 'bg-emerald-700 text-white font-medium' 
+                        : 'bg-emerald-950/90 text-white border border-emerald-500/40'
+                    }`}>
+                      <div className="text-[10px] opacity-80 font-bold mb-1 flex items-center justify-between gap-3">
+                        <span>{msg.senderName} ({msg.senderRole === 'expert' ? 'Agronomist' : 'Farmer'})</span>
+                        <span>{msg.timestamp}</span>
+                      </div>
+                      {msg.image && (
+                        <img 
+                          src={msg.image} 
+                          alt="Attached crop photo" 
+                          className="rounded-xl max-h-60 w-full object-cover mb-2 border border-emerald-500/40 shadow cursor-pointer hover:opacity-95 transition"
+                          onClick={() => window.open(msg.image, '_blank')}
+                        />
+                      )}
+                      <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                     </div>
                   </div>
-                ) : (
-                  <div key={msg.id} className={`flex ${msg.senderRole === 'farmer' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-md rounded-2xl p-3.5 shadow-md ${msg.senderRole === 'farmer' ? 'bg-emerald-700 text-white font-medium' : 'bg-emerald-950/80 text-white border border-emerald-500/40'}`}>
-                      <div className="text-[10px] opacity-80 font-bold mb-1">{msg.senderName} â€¢ {msg.timestamp}</div>
-                      {msg.image && <img src={msg.image} alt="Crop photo" className="rounded-xl max-h-56 w-full object-cover mb-2 border border-emerald-500/40 shadow" />}
-                      <p className="text-xs sm:text-sm font-medium leading-relaxed">{msg.text}</p>
-                    </div>
-                  </div>
-                )
-              ))}
+                );
+              })}
+
+              <div ref={messagesEndRef} />
             </div>
           </div>
 
-          {/* Photo attachment footer bar */}
+          {/* Photo attachment preview bar */}
           {photo && (
-            <div className="bg-emerald-700/20 p-2 px-4 border-t border-emerald-500/20 flex items-center justify-between no-print">
-              <span className="text-xs font-bold text-emerald-400">{t.chatPhotoAttached}</span>
-              <button onClick={() => setPhoto(null)} className="text-xs text-red-500 font-bold hover:underline">Remove</button>
+            <div className="bg-emerald-700/20 p-2 px-4 border-t border-emerald-500/20 flex items-center justify-between no-print max-w-3xl mx-auto w-full">
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <span>📷</span>
+                <span>Crop Photo Attached (Ready to Send)</span>
+              </span>
+              <button onClick={() => setPhoto(null)} className="text-xs text-red-400 font-bold hover:underline cursor-pointer">Remove</button>
             </div>
           )}
 
-          {/* Message Input Controls */}
+          {/* Message Input Controls or Locked Banner */}
           <div className="glass-nav border-t border-emerald-500/20 p-3 no-print">
-            <form onSubmit={handleSend} className="max-w-3xl mx-auto flex gap-2">
-              <label className="p-2.5 rounded-xl bg-emerald-700/20 border border-emerald-500/30 cursor-pointer hover:bg-emerald-700/30 transition">
-                <input type="file" accept="image/*" onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPhoto(reader.result);
-                    reader.readAsDataURL(file);
-                  }
-                }} className="hidden" />
-                ðŸ“·
-              </label>
-              <input type="text" value={text} onChange={(e) => setText(e.target.value)} placeholder={t.chatInputPlaceholder} className="flex-1 px-4 py-2 rounded-xl border border-emerald-500/30 text-xs sm:text-sm outline-none font-medium bg-transparent" />
-              <button type="submit" className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow transition">{t.btnSend}</button>
-            </form>
+            {isClaimedByOther ? (
+              <div className="max-w-3xl mx-auto text-center py-2">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 font-bold text-xs">
+                  <span>🔒</span>
+                  <span>Chat Input Locked — Exclusively assigned to {currentConsultation.assignedExpertName}. Only they can reply to this farmer.</span>
+                </span>
+              </div>
+            ) : (
+              <form onSubmit={handleSend} className="max-w-3xl mx-auto flex gap-2">
+                <label className="p-2.5 rounded-xl bg-emerald-700/20 border border-emerald-500/30 cursor-pointer hover:bg-emerald-700/30 transition flex items-center justify-center shrink-0">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => setPhoto(reader.result);
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                    className="hidden" 
+                  />
+                  <span>📷</span>
+                </label>
+                <input 
+                  type="text" 
+                  value={text} 
+                  onChange={(e) => setText(e.target.value)} 
+                  placeholder={isExpert ? "Type agronomist advisory reply..." : t.chatInputPlaceholder} 
+                  className="flex-1 px-4 py-2 rounded-xl border border-emerald-500/30 text-xs sm:text-sm outline-none font-medium bg-transparent focus:border-emerald-500" 
+                />
+                <button 
+                  type="submit" 
+                  disabled={sending || (!text.trim() && !photo)}
+                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow transition shrink-0 cursor-pointer"
+                >
+                  {sending ? '...' : t.btnSend}
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Prescription Modal for Experts */}
@@ -2202,10 +2568,10 @@
               <BentoTiltCard className="w-full max-w-xl !p-0 overflow-hidden shadow-2xl">
                 <div className="bg-gradient-to-r from-amber-950 to-amber-900 p-5 text-white flex items-center justify-between border-b border-amber-800">
                   <h3 className="font-extrabold text-lg text-white">{t.prescriptionTitle}</h3>
-                  <button onClick={() => setIsPrescriptionModalOpen(false)} className="w-8 h-8 rounded-full bg-amber-900 text-white font-bold text-sm">âœ•</button>
+                  <button onClick={() => setIsPrescriptionModalOpen(false)} className="w-8 h-8 rounded-full bg-amber-900 text-white font-bold text-sm">✕</button>
                 </div>
 
-                <form onSubmit={handleIssuePrescription} className="p-6 space-y-4">
+                <form onSubmit={handleIssuePrescriptionSubmit} className="p-6 space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-amber-400 mb-1">{t.prescriptionSelectPreset}</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -2216,7 +2582,7 @@
                           onClick={() => handlePresetSelect(p)}
                           className="p-2 text-left bg-amber-950/40 hover:bg-amber-900/60 rounded-xl border border-amber-500/30 text-[11px] font-bold text-amber-200 transition"
                         >
-                          âš¡ {p.name}
+                          ⚡ {p.name}
                         </button>
                       ))}
                     </div>
@@ -2254,212 +2620,309 @@
       );
     }
 
-    // --- EXPERT DASHBOARD ---
-    function ExpertDashboard({ currentUser, consultations, onSelectConsultation, setActiveView, currentLanguage, themeMode }) {
+    // --- EXPERT DASHBOARD: WITH UNCLAIMED QUEUE, SINGLE-EXPERT LOCKING, & RESOLUTION TABS ---
+    function ExpertDashboard({ currentUser, consultations, onSelectConsultation, onClaimTicket, onReleaseTicket, setActiveView, currentLanguage, themeMode }) {
       const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.en;
       const [districtFilter, setDistrictFilter] = useState('all');
       const [searchQuery, setSearchQuery] = useState('');
-      const [statusFilter, setStatusFilter] = useState('all');
+      const [activeTab, setActiveTab] = useState('unassigned'); // 'unassigned' | 'my_claimed' | 'other_claimed' | 'resolved'
 
-      const filtered = consultations.filter(c => {
+      const currentEmail = (currentUser?.email || '').toLowerCase().trim();
+
+      // Filtered cohorts
+      const unassignedList = consultations.filter(c => !c.assignedExpertEmail || c.status === 'Pending');
+      const myClaimedList = consultations.filter(c => c.assignedExpertEmail && c.assignedExpertEmail.toLowerCase() === currentEmail && c.status !== 'Resolved');
+      const otherClaimedList = consultations.filter(c => c.assignedExpertEmail && c.assignedExpertEmail.toLowerCase() !== currentEmail && c.status !== 'Resolved');
+      const resolvedList = consultations.filter(c => c.status === 'Resolved');
+
+      // Select target pool for active tab
+      let tabPool = [];
+      if (activeTab === 'unassigned') tabPool = unassignedList;
+      else if (activeTab === 'my_claimed') tabPool = myClaimedList;
+      else if (activeTab === 'other_claimed') tabPool = otherClaimedList;
+      else if (activeTab === 'resolved') tabPool = resolvedList;
+
+      const filtered = tabPool.filter(c => {
         const matchesDistrict = districtFilter === 'all' || c.farmerDistrict === districtFilter;
-        const matchesSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              c.farmerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              c.ticketId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              c.cropLabel.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || c.status.toLowerCase().replace(' ', '') === statusFilter.toLowerCase().replace(' ', '');
-        return matchesDistrict && matchesSearch && matchesStatus;
+        const matchesSearch = (c.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              (c.farmerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              (c.ticketId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              (c.cropLabel || '').toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesDistrict && matchesSearch;
       });
-
-      const pendingCount = consultations.filter(c => c.status === 'Pending').length;
-      const inProgressCount = consultations.filter(c => c.status === 'In Progress').length;
-      const resolvedCount = consultations.filter(c => c.status === 'Resolved').length;
 
       return (
         <div className="min-h-screen pb-16">
           {/* Expert Hero Header */}
           <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-amber-950 text-white py-8 px-4 sm:px-6 lg:px-8 border-b border-amber-900/50 shadow-xl relative overflow-hidden">
-            <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none flex items-center pr-8">
-              <svg className="w-96 h-96 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-            </div>
-
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
               <div>
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className="text-xs bg-amber-500/20 text-amber-300 font-bold px-3 py-1 rounded-full border border-amber-500/40 shadow-sm flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    {t.expertDeskTitle}
+                    👨‍🌾 Official Extension Officer Desk
                   </span>
                   <span className="text-xs bg-emerald-500/20 text-emerald-300 font-bold px-3 py-1 rounded-full border border-emerald-500/40">
-                    Extension Division â€¢ Peradeniya
+                    Extension Division • Peradeniya
+                  </span>
+                  <span className="text-xs bg-white/10 text-white/90 font-bold px-3 py-1 rounded-full border border-white/20">
+                    Logged in as: {currentUser?.email}
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
                   {currentUser?.name || 'Dr. Nimal Jayasinghe'}
                 </h1>
                 <p className="text-xs sm:text-sm text-amber-200/80 mt-1 font-medium">
-                  {currentUser?.cropOrDept || 'Senior Agronomist & Plant Pathologist'}
+                  {currentUser?.cropOrDept || 'Senior Agronomist & Plant Pathologist'} • Single-Expert Case Claiming System
                 </p>
               </div>
 
-              {/* District Selector Header Filter */}
+              {/* District Filter Dropdown */}
               <div className="flex items-center gap-3 shrink-0">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-amber-300">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  </div>
-                  <select
-                    value={districtFilter}
-                    onChange={(e) => setDistrictFilter(e.target.value)}
-                    className="pl-9 pr-4 py-3 rounded-xl text-xs font-black bg-slate-900/90 text-amber-100 border border-amber-500/40 outline-none cursor-pointer shadow-lg hover:border-amber-400 transition"
-                  >
-                    <option value="all">All Sri Lankan Districts ({SRI_LANKAN_DISTRICTS.length})</option>
-                    {SRI_LANKAN_DISTRICTS.map(d => <option key={d} value={d}>{d} District</option>)}
-                  </select>
-                </div>
+                <select
+                  value={districtFilter}
+                  onChange={(e) => setDistrictFilter(e.target.value)}
+                  className="px-4 py-3 rounded-xl text-xs font-black bg-slate-900/90 text-amber-100 border border-amber-500/40 outline-none cursor-pointer shadow-lg hover:border-amber-400 transition"
+                >
+                  <option value="all">All Sri Lankan Districts ({SRI_LANKAN_DISTRICTS.length})</option>
+                  {SRI_LANKAN_DISTRICTS.map(d => <option key={d} value={d}>{d} District</option>)}
+                </select>
               </div>
             </div>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
+            
             {/* Quick Metrics Bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <BentoTiltCard className="!p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xl border border-amber-500/20 shrink-0">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              <button 
+                onClick={() => setActiveTab('unassigned')}
+                className={`text-left p-5 rounded-2xl border transition shadow-sm ${activeTab === 'unassigned' ? 'ring-2 ring-amber-500 bg-amber-500/10 border-amber-500/40' : 'border-slate-200 dark:border-emerald-500/20 bg-white/60 dark:bg-emerald-950/30'}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold opacity-75">🟡 Available Inquiries</span>
+                  <span className="text-xs font-black bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">{unassignedList.length}</span>
                 </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black">{consultations.length}</p>
-                  <p className="text-xs font-semibold opacity-70">Total Queries</p>
-                </div>
-              </BentoTiltCard>
+                <p className="text-2xl sm:text-3xl font-black text-amber-400">{unassignedList.length}</p>
+                <p className="text-[11px] opacity-70">Unclaimed by specialists</p>
+              </button>
 
-              <BentoTiltCard className="!p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-red-500/15 text-red-600 dark:text-red-400 flex items-center justify-center font-bold text-xl border border-red-500/20 shrink-0">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <button 
+                onClick={() => setActiveTab('my_claimed')}
+                className={`text-left p-5 rounded-2xl border transition shadow-sm ${activeTab === 'my_claimed' ? 'ring-2 ring-emerald-500 bg-emerald-500/10 border-emerald-500/40' : 'border-slate-200 dark:border-emerald-500/20 bg-white/60 dark:bg-emerald-950/30'}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold opacity-75">🟢 My Claimed Chats</span>
+                  <span className="text-xs font-black bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">{myClaimedList.length}</span>
                 </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black">{pendingCount}</p>
-                  <p className="text-xs font-semibold opacity-70">Action Required</p>
-                </div>
-              </BentoTiltCard>
+                <p className="text-2xl sm:text-3xl font-black text-emerald-400">{myClaimedList.length}</p>
+                <p className="text-[11px] opacity-70">Exclusively assigned to you</p>
+              </button>
 
-              <BentoTiltCard className="!p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xl border border-emerald-500/20 shrink-0">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <button 
+                onClick={() => setActiveTab('other_claimed')}
+                className={`text-left p-5 rounded-2xl border transition shadow-sm ${activeTab === 'other_claimed' ? 'ring-2 ring-red-500 bg-red-500/10 border-red-500/40' : 'border-slate-200 dark:border-emerald-500/20 bg-white/60 dark:bg-emerald-950/30'}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold opacity-75">🔒 Colleagues' Cases</span>
+                  <span className="text-xs font-black bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">{otherClaimedList.length}</span>
                 </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black">{inProgressCount}</p>
-                  <p className="text-xs font-semibold opacity-70">Active Consultations</p>
-                </div>
-              </BentoTiltCard>
+                <p className="text-2xl sm:text-3xl font-black text-red-400">{otherClaimedList.length}</p>
+                <p className="text-[11px] opacity-70">Locked to other experts</p>
+              </button>
 
-              <BentoTiltCard className="!p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xl border border-blue-500/20 shrink-0">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <button 
+                onClick={() => setActiveTab('resolved')}
+                className={`text-left p-5 rounded-2xl border transition shadow-sm ${activeTab === 'resolved' ? 'ring-2 ring-blue-500 bg-blue-500/10 border-blue-500/40' : 'border-slate-200 dark:border-emerald-500/20 bg-white/60 dark:bg-emerald-950/30'}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold opacity-75">🔵 Resolved Cases</span>
+                  <span className="text-xs font-black bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">{resolvedList.length}</span>
                 </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black">{resolvedCount}</p>
-                  <p className="text-xs font-semibold opacity-70">Resolved Cases</p>
-                </div>
-              </BentoTiltCard>
+                <p className="text-2xl sm:text-3xl font-black text-blue-400">{resolvedList.length}</p>
+                <p className="text-[11px] opacity-70">Prescriptions issued</p>
+              </button>
             </div>
 
-            {/* Queue Card */}
+            {/* Queue Management Card */}
             <BentoTiltCard className="!p-6">
+              
+              {/* Header & Tabs */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-amber-500/20">
                 <div>
-                  <h2 className="text-xl font-black tracking-tight">{t.expertQueueTitle}</h2>
-                  <p className="text-xs opacity-70 mt-0.5">Review, inspect crop photos, and prescribe remote agrarian solutions</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-black tracking-tight">
+                      {activeTab === 'unassigned' && '🟢 Available Farmer Inquiries (Waiting for Claim)'}
+                      {activeTab === 'my_claimed' && '👤 My Claimed Consultations (Exclusively Yours)'}
+                      {activeTab === 'other_claimed' && '🔒 Colleagues\' Consultations (Read-Only)'}
+                      {activeTab === 'resolved' && '✅ Resolved Cases History'}
+                    </h2>
+                    <span className="text-xs bg-amber-500/20 text-amber-400 font-extrabold px-2.5 py-0.5 rounded-full">
+                      {filtered.length} Cases
+                    </span>
+                  </div>
+                  <p className="text-xs opacity-70 mt-1">
+                    {activeTab === 'unassigned' && 'Click "Claim & Open Chat" to lock an inquiry exclusively to your account.'}
+                    {activeTab === 'my_claimed' && 'These cases are accessible only by you and the farmer. Other experts cannot reply.'}
+                    {activeTab === 'other_claimed' && 'These cases are actively claimed by other agronomists. Access is restricted.'}
+                    {activeTab === 'resolved' && 'Official agronomist remedy cards issued.'}
+                  </p>
                 </div>
 
-                {/* Toolbar */}
-                <div className="flex flex-col sm:flex-row items-center gap-2.5">
-                  <div className="relative w-full sm:w-64">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none opacity-50">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={t.filterSearchPlaceholder}
-                      className="pl-9 pr-3.5 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-emerald-500/30 outline-none w-full bg-white dark:bg-emerald-950/40 text-slate-900 dark:text-emerald-100 font-medium placeholder-slate-400 dark:placeholder-emerald-500/50 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
-                    />
-                  </div>
-
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3.5 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-emerald-500/30 outline-none bg-white dark:bg-emerald-950/50 text-slate-900 dark:text-emerald-100 font-bold w-full sm:w-auto cursor-pointer focus:border-amber-500 transition shadow-sm"
-                  >
-                    <option value="all">{t.filterAllStatus}</option>
-                    <option value="pending">{t.filterPending}</option>
-                    <option value="inprogress">{t.filterInProgress}</option>
-                    <option value="resolved">{t.filterResolved}</option>
-                  </select>
+                {/* Search Bar */}
+                <div className="w-full sm:w-72">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by crop, farmer, or ticket ID..."
+                    className="w-full px-4 py-2.5 rounded-xl text-xs border border-slate-300 dark:border-emerald-500/30 outline-none bg-white dark:bg-emerald-950/40 text-slate-900 dark:text-emerald-100 font-medium placeholder-slate-400 dark:placeholder-emerald-500/50 focus:border-amber-500 transition shadow-sm"
+                  />
                 </div>
               </div>
 
-              {/* Items Queue */}
+              {/* Items List */}
               <div className="space-y-4">
                 {filtered.length === 0 ? (
                   <div className="text-center py-12 p-6 rounded-2xl border border-dashed border-slate-300 dark:border-amber-500/30 bg-slate-50/50 dark:bg-emerald-950/10">
-                    <svg className="w-12 h-12 mx-auto text-amber-500 mb-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <p className="font-bold text-base opacity-80 mb-1">No Farmer Queries Match Your Filter</p>
-                    <p className="text-xs opacity-60 max-w-sm mx-auto">Try clearing search keywords or selecting a different district filter.</p>
+                    <p className="font-bold text-base opacity-80 mb-1">No Consultations in this View</p>
+                    <p className="text-xs opacity-60 max-w-sm mx-auto">
+                      {activeTab === 'unassigned' && '🎉 All incoming farmer inquiries are currently claimed and handled!'}
+                      {activeTab === 'my_claimed' && 'You have no open claimed cases. Claim a pending inquiry from the Available tab!'}
+                      {activeTab === 'other_claimed' && 'No cases are currently assigned to other agronomists.'}
+                      {activeTab === 'resolved' && 'No resolved cases found matching your filters.'}
+                    </p>
                   </div>
                 ) : (
-                  filtered.map(c => (
-                    <div 
-                      key={c.id} 
-                      className={`p-5 rounded-2xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-amber-500/50 hover:shadow-md group ${
-                        themeMode === 'light' ? 'border-slate-200 bg-white/80' : 'border-emerald-500/20 bg-emerald-950/30'
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <img 
-                          src={c.sampleImage} 
-                          alt="Farmer crop request" 
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-slate-300 dark:border-emerald-500/30 shadow-md group-hover:scale-105 transition-transform duration-300 shrink-0" 
-                        />
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[11px] font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 ${
-                              themeMode === 'light' ? 'text-amber-800' : 'text-amber-300'
-                            }`}>
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                              {c.farmerDistrict}
-                            </span>
-                            <span className={`text-xs font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 ${
-                              themeMode === 'light' ? 'text-emerald-800' : 'text-emerald-300'
-                            }`}>
-                              {c.cropLabel}
-                            </span>
-                            <span className={`text-xs font-mono opacity-70 px-2 py-0.5 rounded ${
-                              themeMode === 'light' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-900/40 text-emerald-300'
-                            }`}>
-                              {c.ticketId}
-                            </span>
+                  filtered.map(c => {
+                    const cid = c._id || c.id;
+                    const isMine = c.assignedExpertEmail && c.assignedExpertEmail.toLowerCase() === currentEmail;
+                    const isOther = c.assignedExpertEmail && c.assignedExpertEmail.toLowerCase() !== currentEmail;
+                    const isUnclaimed = !c.assignedExpertEmail || c.status === 'Pending';
+
+                    return (
+                      <div 
+                        key={cid} 
+                        className={`p-5 rounded-2xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-amber-500/50 hover:shadow-md group ${
+                          isMine 
+                            ? 'border-emerald-500/40 bg-emerald-950/20' 
+                            : isOther 
+                            ? 'border-red-500/30 bg-red-950/10' 
+                            : 'border-amber-500/30 bg-amber-950/10'
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <img 
+                            src={c.sampleImage} 
+                            alt="Farmer crop request" 
+                            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-slate-300 dark:border-emerald-500/30 shadow-md group-hover:scale-105 transition-transform duration-300 shrink-0 cursor-pointer" 
+                            onClick={() => window.open(c.sampleImage, '_blank')}
+                          />
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                                📍 {c.farmerDistrict}
+                              </span>
+                              <span className="text-xs font-bold bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                                {c.cropLabel}
+                              </span>
+                              <span className="text-xs font-mono opacity-70 px-2 py-0.5 rounded bg-slate-200 dark:bg-emerald-900/40 text-slate-700 dark:text-emerald-300">
+                                {c.ticketId}
+                              </span>
+
+                              {/* Assignment status badge */}
+                              {isUnclaimed && (
+                                <span className="text-xs font-extrabold bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/40">
+                                  ⚡ Unassigned
+                                </span>
+                              )}
+                              {isMine && (
+                                <span className="text-xs font-extrabold bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                                  ✓ Assigned to You
+                                </span>
+                              )}
+                              {isOther && (
+                                <span className="text-xs font-extrabold bg-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full border border-red-500/40 flex items-center gap-1">
+                                  🔒 Claimed by {c.assignedExpertName}
+                                </span>
+                              )}
+                            </div>
+
+                            <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+                              {c.title}
+                            </h3>
+                            <p className="text-xs opacity-75 leading-relaxed line-clamp-2">
+                              {c.description}
+                            </p>
+                            <p className="text-[11px] opacity-70 font-semibold pt-0.5">
+                              Farmer: <strong className="font-extrabold text-slate-900 dark:text-emerald-300">{c.farmerName}</strong> {c.farmerPhone ? `• ${c.farmerPhone}` : ''}
+                            </p>
                           </div>
-                          <h3 className={`font-extrabold text-base sm:text-lg transition-colors ${ themeMode === 'light' ? 'group-hover:text-amber-700' : 'group-hover:text-amber-400' }`}>
-                            {c.title}
-                          </h3>
-                          <p className="text-xs opacity-75 font-medium">
-                            Farmer: <strong className="font-extrabold">{c.farmerName}</strong> â€¢ Status: <span className={`font-bold ${ themeMode === 'light' ? 'text-amber-700' : 'text-amber-400' }`}>{c.status}</span>
-                          </p>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isUnclaimed && (
+                            <button
+                              onClick={async () => {
+                                const ok = await onClaimTicket(cid);
+                                if (ok) {
+                                  onSelectConsultation(cid);
+                                  setActiveView('consultation_room');
+                                }
+                              }}
+                              className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer transform hover:scale-105"
+                            >
+                              <span>✋</span>
+                              <span>Claim & Open Chat →</span>
+                            </button>
+                          )}
+
+                          {isMine && (
+                            <>
+                              <button
+                                onClick={() => { onSelectConsultation(cid); setActiveView('consultation_room'); }}
+                                className="px-5 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <span>💬</span>
+                                <span>Open Chat Room →</span>
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm('Release this ticket back to the open queue?')) {
+                                    await onReleaseTicket(cid);
+                                  }
+                                }}
+                                className="px-3 py-3 bg-red-950/40 hover:bg-red-900/60 text-red-400 font-bold text-xs rounded-xl border border-red-500/30 transition"
+                                title="Release ticket back to open pool"
+                              >
+                                ⇄ Release
+                              </button>
+                            </>
+                          )}
+
+                          {isOther && (
+                            <button
+                              onClick={() => { onSelectConsultation(cid); setActiveView('consultation_room'); }}
+                              className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-amber-200 font-bold text-xs rounded-xl border border-amber-500/30 shadow flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <span>👁️</span>
+                              <span>View (Locked to {c.assignedExpertName})</span>
+                            </button>
+                          )}
+
+                          {c.status === 'Resolved' && (
+                            <button
+                              onClick={() => { onSelectConsultation(cid); setActiveView('consultation_room'); }}
+                              className="px-4 py-3 bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <span>📋</span>
+                              <span>View Remedy Card</span>
+                            </button>
+                          )}
                         </div>
                       </div>
-
-                      <button
-                        onClick={() => { onSelectConsultation(c.id); setActiveView('consultation_room'); }}
-                        className="px-5 py-3 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all duration-200 flex items-center justify-center gap-2 shrink-0 group-hover:bg-amber-500"
-                      >
-                        <span>{t.btnOpenChat}</span>
-                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                      </button>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </BentoTiltCard>
@@ -2476,33 +2939,39 @@
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn no-print">
           <BentoTiltCard className="w-full max-w-md !p-0 overflow-hidden shadow-2xl">
             <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 p-6 text-white text-center border-b border-emerald-700 relative">
-              <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-emerald-950 text-white font-bold text-sm">âœ•</button>
+              <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-emerald-950 text-white font-bold text-sm cursor-pointer">✕</button>
               <div className="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xl font-black mx-auto mb-2 border-2 border-white shadow-lg">
                 {currentUser.name ? currentUser.name[0] : 'U'}
               </div>
               <h3 className="text-xl font-black text-white">{currentUser.name}</h3>
-              <p className="text-xs text-emerald-200 capitalize font-bold">{currentUser.role} Account â€¢ {currentUser.district} District</p>
+              <p className="text-xs text-emerald-200 capitalize font-bold">{currentUser.role} Account • {currentUser.district || 'Sri Lanka'}</p>
             </div>
 
             <div className="p-6 space-y-4">
               <div className="space-y-2 text-xs">
                 <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/20 flex justify-between">
-                  <span className="opacity-70 font-bold">Mobile Phone:</span>
-                  <span className="font-extrabold text-emerald-400">{currentUser.phone}</span>
+                  <span className="opacity-70 font-bold">Email:</span>
+                  <span className="font-extrabold text-emerald-400">{currentUser.email}</span>
+                </div>
+                {currentUser.phone && (
+                  <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/20 flex justify-between">
+                    <span className="opacity-70 font-bold">Mobile Phone:</span>
+                    <span className="font-extrabold text-emerald-400">{currentUser.phone}</span>
+                  </div>
+                )}
+                <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/20 flex justify-between">
+                  <span className="opacity-70 font-bold">District / Area:</span>
+                  <span className="font-extrabold text-emerald-400">{currentUser.district || 'Anuradhapura'}</span>
                 </div>
                 <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/20 flex justify-between">
-                  <span className="opacity-70 font-bold">District / Location:</span>
-                  <span className="font-extrabold text-emerald-400">{currentUser.district}</span>
-                </div>
-                <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-500/20 flex justify-between">
-                  <span className="opacity-70 font-bold">{currentUser.role === 'farmer' ? 'Primary Crop:' : 'Institution / Department:'}</span>
-                  <span className="font-extrabold text-emerald-400">{currentUser.cropOrDept || 'N/A'}</span>
+                  <span className="opacity-70 font-bold">{currentUser.role === 'farmer' ? 'Primary Crop:' : 'Designation / Specialty:'}</span>
+                  <span className="font-extrabold text-emerald-400">{currentUser.cropOrDept || 'General Agronomy'}</span>
                 </div>
               </div>
 
               <button
                 onClick={() => { onLogout(); onClose(); }}
-                className="w-full py-3 bg-red-900/40 hover:bg-red-900/60 text-red-400 font-extrabold text-xs rounded-xl border border-red-500/30 transition shadow"
+                className="w-full py-3 bg-red-900/40 hover:bg-red-900/60 text-red-400 font-extrabold text-xs rounded-xl border border-red-500/30 transition shadow cursor-pointer"
               >
                 Log Out of Account
               </button>
@@ -2512,7 +2981,7 @@
       );
     }
 
-    // --- MAIN APP WITH PERSISTENCE & MULTI-ROLE STATE ---
+    // --- MAIN APP WITH FULL BACKEND DATABASE SYNCHRONIZATION ---
     function App() {
       const [currentUser, setCurrentUser] = useState(() => {
         try {
@@ -2536,55 +3005,36 @@
         setThemeMode(prev => prev === 'dark' ? 'light' : 'dark');
       };
 
-      const [consultations, setConsultations] = useState(() => {
-        try {
-          const saved = localStorage.getItem('govisahana_consultations');
-          return saved ? JSON.parse(saved) : INITIAL_CONSULTATIONS;
-        } catch (e) {
-          return INITIAL_CONSULTATIONS;
-        }
-      });
+      const [consultations, setConsultations] = useState(INITIAL_CONSULTATIONS);
+      const [activeConsultationId, setActiveConsultationId] = useState('con_101');
+      const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
-      const [messages, setMessages] = useState(() => {
+      // Fetch live consultations from backend database
+      const refreshConsultations = async () => {
         try {
-          const saved = localStorage.getItem('govisahana_messages');
-          return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
-        } catch (e) {
-          return INITIAL_MESSAGES;
-        }
-      });
-
-      useEffect(() => {
-        fetch(`${API_BASE}/api/consultations`)
-          .then(res => res.json())
-          .then(data => {
+          const res = await fetch(`${API_BASE}/api/consultations`);
+          if (res.ok) {
+            const data = await res.json();
             if (Array.isArray(data) && data.length > 0) {
               setConsultations(data);
             }
-          })
-          .catch(() => {});
+          }
+        } catch (e) {}
+      };
+
+      // Poll database for ticket list changes every 4 seconds
+      useEffect(() => {
+        refreshConsultations();
+        const poll = setInterval(refreshConsultations, 4000);
+        return () => clearInterval(poll);
       }, []);
-
-      useEffect(() => {
-        try {
-          localStorage.setItem('govisahana_consultations', JSON.stringify(consultations));
-        } catch (e) {}
-      }, [consultations]);
-
-      useEffect(() => {
-        try {
-          localStorage.setItem('govisahana_messages', JSON.stringify(messages));
-        } catch (e) {}
-      }, [messages]);
-
-      const [activeConsultationId, setActiveConsultationId] = useState('con_101');
-      const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
       const handleAuthSuccess = (userObj) => {
         setCurrentUser(userObj);
         try {
           localStorage.setItem('govisahana_active_user', JSON.stringify(userObj));
         } catch (e) {}
+        refreshConsultations();
         setActiveView(userObj && userObj.role === 'expert' ? 'expert_dashboard' : 'farmer_dashboard');
       };
 
@@ -2596,47 +3046,155 @@
         setActiveView('landing');
       };
 
-      const handleCreateTicket = (newTicket) => {
-        setConsultations([newTicket, ...consultations]);
-        setMessages({
-          ...messages,
-          [newTicket.id]: [
-            {
-              id: `msg_init_${Date.now()}`,
-              senderName: newTicket.farmerName,
-              senderRole: 'farmer',
-              text: `Consultation Ticket Created: ${newTicket.description}`,
-              image: newTicket.sampleImage,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              type: 'user'
-            }
-          ]
-        });
-
-        fetch(`${API_BASE}/api/consultations`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newTicket)
-        }).catch(() => {});
-
-        setActiveConsultationId(newTicket.id);
-        setActiveView('farmer_dashboard');
+      // Create new ticket: posts to backend database
+      const handleCreateTicket = async (ticketData) => {
+        try {
+          const payload = {
+            ...ticketData,
+            farmerName: currentUser?.name || ticketData.farmerName || 'Farmer Member',
+            farmerEmail: currentUser?.email || ticketData.farmerEmail || 'sunil@farmer.lk',
+            farmerPhone: currentUser?.phone || ticketData.farmerPhone || '+94 77 555 1212',
+            farmerDistrict: currentUser?.district || ticketData.farmerDistrict || 'Anuradhapura'
+          };
+          const res = await fetch(`${API_BASE}/api/consultations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data && data.consultation) {
+            const created = data.consultation;
+            const cid = created._id || created.id;
+            setConsultations(prev => [created, ...prev.filter(c => (c._id || c.id) !== cid)]);
+            setActiveConsultationId(cid);
+            setActiveView('consultation_room');
+            refreshConsultations();
+          }
+        } catch (err) {
+          console.error('Failed to create ticket:', err);
+        }
       };
 
-      const handleSendMessage = (consultationId, newMessage) => {
-        const existing = messages[consultationId] || [];
-        setMessages({
-          ...messages,
-          [consultationId]: [...existing, newMessage]
-        });
+      // Expert claims ticket exclusively
+      const handleClaimTicket = async (consultationId) => {
+        try {
+          const res = await fetch(`${API_BASE}/api/consultations/${consultationId}/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              expertName: currentUser?.name || 'Dr. Nimal Jayasinghe',
+              expertEmail: currentUser?.email || 'nimal@govisahana.lk',
+              expertId: currentUser?._id || currentUser?.id || 'exp_1'
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            alert(data.error || 'Failed to claim consultation');
+            return false;
+          }
+          await refreshConsultations();
+          return true;
+        } catch (err) {
+          console.error('Claim error:', err);
+          return false;
+        }
       };
 
-      const handleMarkResolved = (consultationId) => {
-        setConsultations(consultations.map(c => c.id === consultationId ? { ...c, status: 'Resolved' } : c));
+      // Expert releases ticket
+      const handleReleaseTicket = async (consultationId) => {
+        try {
+          const res = await fetch(`${API_BASE}/api/consultations/${consultationId}/release`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              expertEmail: currentUser?.email || ''
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            alert(data.error || 'Failed to release consultation');
+            return false;
+          }
+          await refreshConsultations();
+          return true;
+        } catch (err) {
+          console.error('Release error:', err);
+          return false;
+        }
       };
 
-      const activeConsultation = consultations.find(c => c.id === activeConsultationId) || consultations[0];
-      const activeChatMessages = messages[activeConsultationId] || [];
+      // Send message to backend database
+      const handleSendMessage = async (consultationId, msgPayload) => {
+        try {
+          const res = await fetch(`${API_BASE}/api/consultations/${consultationId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              senderName: currentUser?.name || msgPayload.senderName || 'User',
+              senderRole: currentUser?.role || msgPayload.senderRole || 'farmer',
+              senderEmail: currentUser?.email || msgPayload.senderEmail || '',
+              text: msgPayload.text,
+              image: msgPayload.image,
+              prescription: msgPayload.prescription || null
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            alert(data.error || 'Failed to send message');
+            return null;
+          }
+          refreshConsultations();
+          return data;
+        } catch (err) {
+          console.error('Failed to send message:', err);
+          return null;
+        }
+      };
+
+      // Issue prescription to backend database
+      const handleIssuePrescription = async (consultationId, rxPayload) => {
+        try {
+          const res = await fetch(`${API_BASE}/api/consultations/${consultationId}/prescription`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...rxPayload,
+              expertName: currentUser?.name || 'Senior Agronomist',
+              expertEmail: currentUser?.email || 'nimal@govisahana.lk'
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            alert(data.error || 'Failed to issue prescription');
+            return false;
+          }
+          await refreshConsultations();
+          return true;
+        } catch (err) {
+          console.error('Prescription error:', err);
+          return false;
+        }
+      };
+
+      // Mark resolved
+      const handleMarkResolved = async (consultationId) => {
+        try {
+          await fetch(`${API_BASE}/api/consultations/${consultationId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              senderName: currentUser?.name || 'Agronomist',
+              senderRole: 'system',
+              senderEmail: currentUser?.email || '',
+              text: '✓ Consultation has been marked as Resolved by the assigned agronomist.'
+            })
+          });
+          refreshConsultations();
+        } catch (e) {}
+      };
+
+      // Resolve active consultation by matching _id or id
+      const activeConsultation = consultations.find(c => (c._id === activeConsultationId || c.id === activeConsultationId || c.ticketId === activeConsultationId)) || consultations[0];
 
       return (
         <div className="min-h-screen flex flex-col">
@@ -2678,8 +3236,10 @@
                 <ConsultationRoom
                   currentUser={currentUser}
                   consultation={activeConsultation}
-                  messages={activeChatMessages}
                   onSendMessage={handleSendMessage}
+                  onClaimTicket={handleClaimTicket}
+                  onReleaseTicket={handleReleaseTicket}
+                  onIssuePrescription={handleIssuePrescription}
                   onMarkResolved={handleMarkResolved}
                   onBackToDashboard={() => setActiveView(currentUser && currentUser.role === 'expert' ? 'expert_dashboard' : 'farmer_dashboard')}
                   currentLanguage={currentLanguage}
@@ -2696,6 +3256,8 @@
                   currentUser={currentUser}
                   consultations={consultations}
                   onSelectConsultation={(id) => setActiveConsultationId(id)}
+                  onClaimTicket={handleClaimTicket}
+                  onReleaseTicket={handleReleaseTicket}
                   setActiveView={setActiveView}
                   currentLanguage={currentLanguage}
                   themeMode={themeMode}

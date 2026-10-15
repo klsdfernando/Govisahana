@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const path = require('path');
+const fs = require('fs');
 
 // Load environment variables from server/.env or root .env
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -14,6 +15,8 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/govisa
 
 // Root directory for static frontend files
 const ROOT_DIR = path.join(__dirname, '..');
+const DATA_DIR = path.join(__dirname, 'data');
+const DATA_FILE = path.join(DATA_DIR, 'store.json');
 
 // Middleware
 app.use(cors());
@@ -55,9 +58,10 @@ const otpSchema = new mongoose.Schema({
 });
 const OTP = mongoose.models.OTP || mongoose.model('OTP', otpSchema);
 
-// Consultation Ticket Schema
+// Consultation Ticket Schema (With Dedicated Expert Claim & Access Tracking)
 const consultationSchema = new mongoose.Schema({
   ticketId: { type: String, required: true, unique: true },
+  farmerEmail: { type: String, default: '', lowercase: true, trim: true },
   farmerPhone: { type: String, default: '' },
   farmerName: { type: String, required: true },
   farmerDistrict: { type: String, required: true },
@@ -67,41 +71,53 @@ const consultationSchema = new mongoose.Schema({
   description: { type: String, required: true },
   sampleImage: { type: String, default: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80' },
   status: { type: String, enum: ['Pending', 'In Progress', 'Resolved'], default: 'Pending' },
-  assignedExpertName: { type: String, default: 'Agronomist Extension Desk' },
+  // Single Expert Claim Assignment:
+  assignedExpertId: { type: String, default: null },
+  assignedExpertName: { type: String, default: null },
+  assignedExpertEmail: { type: String, default: null, lowercase: true, trim: true },
+  claimedAt: { type: Date, default: null },
   prescription: {
+    title: String,
     diagnosis: String,
     treatment: String,
     dosage: String,
     timing: String,
-    issuedAt: Date,
-    expertName: String
+    expertName: String,
+    date: String,
+    issuedAt: Date
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 const Consultation = mongoose.models.Consultation || mongoose.model('Consultation', consultationSchema);
 
 // Chat Message Schema
 const messageSchema = new mongoose.Schema({
-  consultationId: { type: String, required: true },
+  consultationId: { type: String, required: true, index: true },
   senderName: { type: String, required: true },
-  senderRole: { type: String, required: true },
+  senderRole: { type: String, enum: ['farmer', 'expert', 'system'], required: true },
+  senderEmail: { type: String, default: '', lowercase: true, trim: true },
   text: { type: String, default: '' },
   image: { type: String, default: null },
+  prescription: { type: Object, default: null },
   timestamp: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);
 
-// --- IN-MEMORY FALLBACK STORE (Active if MongoDB is disconnected) ---
+// --- PERSISTENT FILE-BACKED IN-MEMORY STORE (When MongoDB is not running locally) ---
 let isDbConnected = false;
 let cachedDb = null;
 const memUsers = new Map();
 const memOtps = new Map();
-const memConsultations = [
+
+// Initial seed data if no store file exists
+const SEED_CONSULTATIONS = [
   {
     _id: 'con_101',
     id: 'con_101',
     ticketId: 'GS-2026-089',
+    farmerEmail: 'sunil@farmer.lk',
     farmerName: 'Sunil Rathnayake',
     farmerDistrict: 'Anuradhapura',
     farmerPhone: '+94 77 555 1212',
@@ -110,28 +126,59 @@ const memConsultations = [
     cropLabel: 'Paddy / Rice',
     description: 'Leaves on my 3-acre paddy field near Kekirawa are turning yellowish brown with elongated dark spots after heavy evening rain.',
     status: 'In Progress',
+    assignedExpertId: 'exp_1',
     assignedExpertName: 'Dr. Nimal Jayasinghe',
+    assignedExpertEmail: 'nimal@govisahana.lk',
+    claimedAt: new Date(Date.now() - 3600000).toISOString(),
     sampleImage: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString()
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000).toISOString()
   },
   {
     _id: 'con_102',
     id: 'con_102',
     ticketId: 'GS-2026-074',
+    farmerEmail: 'sunil@farmer.lk',
     farmerName: 'Sunil Rathnayake',
     farmerDistrict: 'Anuradhapura',
     farmerPhone: '+94 77 555 1212',
     title: 'Whitefly infestation on Green Chili plants',
     cropType: 'vegetables',
     cropLabel: 'Low-Country Vegetables',
-    description: 'Tiny white flies underneath the chili leaves causing leaf curl and stunted growth.',
+    description: 'Tiny white flies underneath the chili leaves causing leaf curl and stunted growth. Looking for immediate guidance.',
     status: 'Pending',
-    assignedExpertName: 'Mrs. Priyanthi Bandara',
+    assignedExpertId: null,
+    assignedExpertName: null,
+    assignedExpertEmail: null,
+    claimedAt: null,
     sampleImage: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19657?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date(Date.now() - 86400000).toISOString()
+    createdAt: new Date(Date.now() - 14400000).toISOString(),
+    updatedAt: new Date(Date.now() - 14400000).toISOString()
+  },
+  {
+    _id: 'con_103',
+    id: 'con_103',
+    ticketId: 'GS-2026-092',
+    farmerEmail: 'kamal@farmer.lk',
+    farmerName: 'Kamal Perera',
+    farmerDistrict: 'Kurunegala',
+    farmerPhone: '+94 71 444 8899',
+    title: 'Leaf curling & caterpillar damage on young coconut palms',
+    cropType: 'coconut',
+    cropLabel: 'Coconut',
+    description: 'Lower leaves of 2-year old coconut palms showing scorched appearance and dried webbing from caterpillars.',
+    status: 'In Progress',
+    assignedExpertId: 'exp_2',
+    assignedExpertName: 'Mrs. Priyanthi Bandara',
+    assignedExpertEmail: 'priyanthi@govisahana.lk',
+    claimedAt: new Date(Date.now() - 1800000).toISOString(),
+    sampleImage: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 28800000).toISOString(),
+    updatedAt: new Date(Date.now() - 1800000).toISOString()
   }
 ];
-const memMessages = {
+
+const SEED_MESSAGES = {
   'con_101': [
     {
       _id: 'msg_1',
@@ -139,12 +186,123 @@ const memMessages = {
       consultationId: 'con_101',
       senderName: 'Sunil Rathnayake',
       senderRole: 'farmer',
+      senderEmail: 'sunil@farmer.lk',
       text: 'Ayubowan Doctor! Leaves on my paddy crop are showing severe yellowing after recent heavy rains.',
       image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80',
-      timestamp: '09:30 AM'
+      timestamp: '08:00 AM',
+      createdAt: new Date(Date.now() - 7200000).toISOString()
+    },
+    {
+      _id: 'msg_sys_1',
+      id: 'msg_sys_1',
+      consultationId: 'con_101',
+      senderName: 'GoviSahana Desk',
+      senderRole: 'system',
+      senderEmail: 'system@govisahana.lk',
+      text: '👨‍🌾 Dr. Nimal Jayasinghe (Extension Desk) has accepted this case. Chat room is now active.',
+      timestamp: '08:05 AM',
+      createdAt: new Date(Date.now() - 3600000).toISOString()
+    },
+    {
+      _id: 'msg_2',
+      id: 'msg_2',
+      consultationId: 'con_101',
+      senderName: 'Dr. Nimal Jayasinghe',
+      senderRole: 'expert',
+      senderEmail: 'nimal@govisahana.lk',
+      text: 'Hello Mr. Sunil! I have reviewed your photos. The spindle-shaped lesions indicate early Paddy Blast. Please check the remedy card below.',
+      image: null,
+      timestamp: '08:10 AM',
+      createdAt: new Date(Date.now() - 3300000).toISOString()
+    }
+  ],
+  'con_102': [
+    {
+      _id: 'msg_init_102',
+      id: 'msg_init_102',
+      consultationId: 'con_102',
+      senderName: 'Sunil Rathnayake',
+      senderRole: 'farmer',
+      senderEmail: 'sunil@farmer.lk',
+      text: 'Consultation Ticket Created: Tiny white flies underneath the chili leaves causing leaf curl and stunted growth. Looking for immediate guidance.',
+      image: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19657?auto=format&fit=crop&w=800&q=80',
+      timestamp: '09:00 AM',
+      createdAt: new Date(Date.now() - 14400000).toISOString()
+    }
+  ],
+  'con_103': [
+    {
+      _id: 'msg_init_103',
+      id: 'msg_init_103',
+      consultationId: 'con_103',
+      senderName: 'Kamal Perera',
+      senderRole: 'farmer',
+      senderEmail: 'kamal@farmer.lk',
+      text: 'Consultation Ticket Created: Lower leaves of 2-year old coconut palms showing scorched appearance and dried webbing from caterpillars.',
+      image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80',
+      timestamp: '06:30 AM',
+      createdAt: new Date(Date.now() - 28800000).toISOString()
+    },
+    {
+      _id: 'msg_sys_103',
+      id: 'msg_sys_103',
+      consultationId: 'con_103',
+      senderName: 'GoviSahana Desk',
+      senderRole: 'system',
+      senderEmail: 'system@govisahana.lk',
+      text: '👨‍🌾 Mrs. Priyanthi Bandara has accepted this case. Chat room is now active.',
+      timestamp: '07:00 AM',
+      createdAt: new Date(Date.now() - 1800000).toISOString()
     }
   ]
 };
+
+let memConsultations = [...SEED_CONSULTATIONS];
+let memMessages = { ...SEED_MESSAGES };
+
+// Load and save local store
+function loadStore() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.consultations) && data.consultations.length > 0) {
+        memConsultations = data.consultations;
+      }
+      if (data.messages && typeof data.messages === 'object') {
+        memMessages = data.messages;
+      }
+      if (Array.isArray(data.users)) {
+        memUsers.clear();
+        data.users.forEach(u => memUsers.set(u.email, u));
+      }
+      console.log(`📁 Loaded local JSON store: ${memConsultations.length} consultations, ${Object.keys(memMessages).length} chats`);
+    } else {
+      saveStore();
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not load local JSON store:', err.message);
+  }
+}
+
+function saveStore() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const data = {
+      consultations: memConsultations,
+      messages: memMessages,
+      users: Array.from(memUsers.values())
+    };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('⚠️ Could not write local JSON store:', err.message);
+  }
+}
+
+// Initial load
+loadStore();
 
 // Database Connection Manager with Serverless Connection Caching
 async function ensureDbConnection() {
@@ -153,13 +311,12 @@ async function ensureDbConnection() {
     return cachedDb;
   }
   try {
-    cachedDb = await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 4000 });
+    cachedDb = await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 });
     isDbConnected = true;
     console.log(`✅ Connected to MongoDB at: ${MONGODB_URI.replace(/:[^:]*@/, ':****@')}`);
     return cachedDb;
   } catch (err) {
     isDbConnected = false;
-    console.warn(`⚠️ MongoDB connection note: ${err.message}. Using fallback store.`);
     return null;
   }
 }
@@ -192,7 +349,7 @@ async function sendOtpEmail(email, code) {
     </div>
   `;
 
-  // 1. Try Gmail SMTP first (works on any cloud server — no domain restriction)
+  // 1. Try Gmail SMTP first
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     try {
       const mailOptions = {
@@ -209,7 +366,7 @@ async function sendOtpEmail(email, code) {
     }
   }
 
-  // 2. Fallback to Resend HTTPS API (free tier: only sends to verified account email)
+  // 2. Fallback to Resend
   if (resend) {
     try {
       const response = await resend.emails.send({
@@ -221,7 +378,6 @@ async function sendOtpEmail(email, code) {
       if (response && response.error) {
         throw new Error(response.error.message || 'Resend API returned error');
       }
-      console.log(`🚀 Email delivered via Resend to ${email} (ID: ${response.data?.id})`);
       return response;
     } catch (apiErr) {
       console.warn(`Resend also failed (${apiErr.message}).`);
@@ -240,7 +396,7 @@ app.get('/api/health', (req, res) => {
     service: 'GoviSahana Platform API',
     timestamp: new Date().toISOString(),
     dbConnected: mongoose.connection.readyState === 1,
-    mode: mongoose.connection.readyState === 1 ? 'mongodb-atlas' : 'in-memory-fallback'
+    mode: mongoose.connection.readyState === 1 ? 'mongodb' : 'persistent-json-store'
   });
 });
 
@@ -265,13 +421,10 @@ app.post('/api/otp/send', async (req, res) => {
 
     console.log(`🔑 [OTP CODE GENERATED for ${cleanEmail}]: ${code}`);
 
-    // Attempt email delivery
     try {
       await sendOtpEmail(cleanEmail, code);
-      console.log(`✉️ OTP email successfully dispatched to ${cleanEmail}`);
       res.json({ message: `OTP sent to ${cleanEmail}` });
     } catch (mailErr) {
-      console.warn(`⚠️ Email delivery notice (${mailErr.message}).`);
       res.json({
         message: `OTP generated for ${cleanEmail}. Check server log or use code: ${code}`,
         devCode: code
@@ -364,6 +517,7 @@ app.post('/api/auth/register', async (req, res) => {
         designation: designation || ''
       };
       memUsers.set(cleanEmail, user);
+      saveStore();
       return res.status(201).json({ message: 'User registered successfully', user });
     }
   } catch (err) {
@@ -406,6 +560,7 @@ app.post('/api/auth/login', async (req, res) => {
           district: 'Anuradhapura'
         };
         memUsers.set(cleanEmail, user);
+        saveStore();
       }
       return res.json({ message: 'Login successful', user });
     }
@@ -414,23 +569,41 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Consultations: Get All
+// --- Consultations: Get All with Filter & Expert Scope Support ---
 app.get('/api/consultations', async (req, res) => {
   try {
-    const { district, status, farmerPhone } = req.query;
+    const { district, status, farmerPhone, farmerEmail, expertEmail, unassigned } = req.query;
 
     if (mongoose.connection.readyState === 1) {
       let filter = {};
       if (district && district !== 'all') filter.farmerDistrict = district;
       if (status && status !== 'all') filter.status = status;
       if (farmerPhone) filter.farmerPhone = farmerPhone;
+      if (farmerEmail) filter.farmerEmail = farmerEmail.toLowerCase();
+      if (expertEmail) filter.assignedExpertEmail = expertEmail.toLowerCase();
+      if (unassigned === 'true' || unassigned === '1') {
+        filter.$or = [
+          { assignedExpertEmail: null },
+          { assignedExpertEmail: '' },
+          { status: 'Pending' }
+        ];
+      }
       const consultations = await Consultation.find(filter).sort({ createdAt: -1 });
-      return res.json(consultations);
+      return res.json(consultations.map(c => ({
+        ...c.toObject(),
+        id: c._id.toString(),
+        _id: c._id.toString()
+      })));
     } else {
       let list = [...memConsultations];
       if (district && district !== 'all') list = list.filter(c => c.farmerDistrict === district);
       if (status && status !== 'all') list = list.filter(c => c.status === status);
       if (farmerPhone) list = list.filter(c => c.farmerPhone === farmerPhone);
+      if (farmerEmail) list = list.filter(c => c.farmerEmail && c.farmerEmail.toLowerCase() === farmerEmail.toLowerCase());
+      if (expertEmail) list = list.filter(c => c.assignedExpertEmail && c.assignedExpertEmail.toLowerCase() === expertEmail.toLowerCase());
+      if (unassigned === 'true' || unassigned === '1') {
+        list = list.filter(c => !c.assignedExpertEmail || c.status === 'Pending');
+      }
       return res.json(list);
     }
   } catch (err) {
@@ -438,19 +611,47 @@ app.get('/api/consultations', async (req, res) => {
   }
 });
 
-// Consultations: Create Ticket
+// --- Consultations: Get Single by ID or TicketID ---
+app.get('/api/consultations/:id', async (req, res) => {
+  try {
+    const cid = req.params.id;
+    if (mongoose.connection.readyState === 1) {
+      let item = null;
+      if (mongoose.Types.ObjectId.isValid(cid)) {
+        item = await Consultation.findById(cid);
+      }
+      if (!item) {
+        item = await Consultation.findOne({ $or: [{ ticketId: cid }, { _id: cid }] });
+      }
+      if (!item) return res.status(404).json({ error: 'Consultation ticket not found' });
+      return res.json({ ...item.toObject(), id: item._id.toString(), _id: item._id.toString() });
+    } else {
+      const item = memConsultations.find(c => c.id === cid || c._id === cid || c.ticketId === cid);
+      if (!item) return res.status(404).json({ error: 'Consultation ticket not found' });
+      return res.json(item);
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch consultation', details: err.message });
+  }
+});
+
+// --- Consultations: Create Ticket (Starts in Pending & Unassigned) ---
 app.post('/api/consultations', async (req, res) => {
   try {
-    const { farmerPhone, farmerName, farmerDistrict, title, cropType, cropLabel, description, sampleImage } = req.body;
+    const { farmerPhone, farmerEmail, farmerName, farmerDistrict, title, cropType, cropLabel, description, sampleImage } = req.body;
     if (!title || !description || !farmerName) {
       return res.status(400).json({ error: 'Title, description, and farmer name are required' });
     }
+
+    const defaultImg = sampleImage || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80';
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     if (mongoose.connection.readyState === 1) {
       const ticketCount = await Consultation.countDocuments();
       const ticketId = `GS-2026-${String(ticketCount + 101).padStart(3, '0')}`;
       const newTicket = new Consultation({
         ticketId,
+        farmerEmail: (farmerEmail || '').toLowerCase().trim(),
         farmerPhone: farmerPhone || '',
         farmerName,
         farmerDistrict: farmerDistrict || 'Anuradhapura',
@@ -458,20 +659,32 @@ app.post('/api/consultations', async (req, res) => {
         cropType: cropType || 'paddy',
         cropLabel: cropLabel || 'Paddy / Rice',
         description,
-        sampleImage: sampleImage || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80',
-        status: 'Pending'
+        sampleImage: defaultImg,
+        status: 'Pending',
+        assignedExpertId: null,
+        assignedExpertName: null,
+        assignedExpertEmail: null,
+        claimedAt: null
       });
       await newTicket.save();
+
       const initialMsg = new Message({
         consultationId: newTicket._id.toString(),
         senderName: farmerName,
         senderRole: 'farmer',
+        senderEmail: (farmerEmail || '').toLowerCase().trim(),
         text: `Consultation Ticket Created: ${description}`,
         image: sampleImage || null,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: timeStr
       });
       await initialMsg.save();
-      return res.status(201).json({ message: 'Consultation ticket created', consultation: newTicket });
+
+      const norm = {
+        ...newTicket.toObject(),
+        id: newTicket._id.toString(),
+        _id: newTicket._id.toString()
+      };
+      return res.status(201).json({ message: 'Consultation ticket created', consultation: norm, ...norm });
     } else {
       const ticketId = `GS-2026-${String(memConsultations.length + 101).padStart(3, '0')}`;
       const id = 'con_' + Date.now();
@@ -479,6 +692,7 @@ app.post('/api/consultations', async (req, res) => {
         _id: id,
         id,
         ticketId,
+        farmerEmail: (farmerEmail || '').toLowerCase().trim(),
         farmerPhone: farmerPhone || '',
         farmerName,
         farmerDistrict: farmerDistrict || 'Anuradhapura',
@@ -486,10 +700,14 @@ app.post('/api/consultations', async (req, res) => {
         cropType: cropType || 'paddy',
         cropLabel: cropLabel || 'Paddy / Rice',
         description,
-        sampleImage: sampleImage || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80',
+        sampleImage: defaultImg,
         status: 'Pending',
-        assignedExpertName: 'Agronomist Extension Desk',
-        createdAt: new Date().toISOString()
+        assignedExpertId: null,
+        assignedExpertName: null,
+        assignedExpertEmail: null,
+        claimedAt: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
       memConsultations.unshift(newTicket);
       memMessages[id] = [
@@ -499,67 +717,316 @@ app.post('/api/consultations', async (req, res) => {
           consultationId: id,
           senderName: farmerName,
           senderRole: 'farmer',
+          senderEmail: (farmerEmail || '').toLowerCase().trim(),
           text: `Consultation Ticket Created: ${description}`,
           image: sampleImage || null,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timestamp: timeStr,
+          createdAt: new Date().toISOString()
         }
       ];
-      return res.status(201).json({ message: 'Consultation ticket created', consultation: newTicket });
+      saveStore();
+      return res.status(201).json({ message: 'Consultation ticket created', consultation: newTicket, ...newTicket });
     }
   } catch (err) {
     res.status(500).json({ error: 'Failed to create consultation', details: err.message });
   }
 });
 
-// Consultations: Get Messages
+// --- Consultations: Claim Ticket (EXCLUSIVELY Assigns Ticket to Single Expert) ---
+app.post('/api/consultations/:id/claim', async (req, res) => {
+  try {
+    const cid = req.params.id;
+    const { expertName, expertEmail, expertId } = req.body;
+    if (!expertEmail) {
+      return res.status(400).json({ error: 'Expert email is required to claim a consultation' });
+    }
+
+    const cleanEmail = expertEmail.toLowerCase().trim();
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (mongoose.connection.readyState === 1) {
+      let consultation = mongoose.Types.ObjectId.isValid(cid)
+        ? await Consultation.findById(cid)
+        : await Consultation.findOne({ $or: [{ ticketId: cid }, { _id: cid }] });
+
+      if (!consultation) return res.status(404).json({ error: 'Consultation ticket not found' });
+
+      // Check if already claimed by someone else
+      if (consultation.assignedExpertEmail && consultation.assignedExpertEmail.toLowerCase() !== cleanEmail) {
+        return res.status(409).json({
+          error: `This consultation is already claimed exclusively by ${consultation.assignedExpertName || 'another agronomist'} (${consultation.assignedExpertEmail}). Only they can access this chat.`,
+          claimedBy: consultation.assignedExpertName,
+          claimedEmail: consultation.assignedExpertEmail
+        });
+      }
+
+      consultation.assignedExpertEmail = cleanEmail;
+      consultation.assignedExpertName = expertName || consultation.assignedExpertName || 'Agronomist Officer';
+      consultation.assignedExpertId = expertId || consultation.assignedExpertId || 'exp_' + Date.now();
+      consultation.status = 'In Progress';
+      consultation.claimedAt = new Date();
+      consultation.updatedAt = new Date();
+      await consultation.save();
+
+      // System notification message in the chat
+      const sysMsg = new Message({
+        consultationId: consultation._id.toString(),
+        senderName: 'GoviSahana Desk',
+        senderRole: 'system',
+        senderEmail: 'system@govisahana.lk',
+        text: `👨‍🌾 Agronomist ${consultation.assignedExpertName} has accepted this case. Chat room is now active.`,
+        timestamp: timeStr
+      });
+      await sysMsg.save();
+
+      return res.json({
+        message: 'Consultation claimed successfully',
+        consultation: { ...consultation.toObject(), id: consultation._id.toString(), _id: consultation._id.toString() }
+      });
+    } else {
+      const consultation = memConsultations.find(c => c.id === cid || c._id === cid || c.ticketId === cid);
+      if (!consultation) return res.status(404).json({ error: 'Consultation ticket not found' });
+
+      if (consultation.assignedExpertEmail && consultation.assignedExpertEmail.toLowerCase() !== cleanEmail) {
+        return res.status(409).json({
+          error: `This consultation is already claimed exclusively by ${consultation.assignedExpertName || 'another agronomist'} (${consultation.assignedExpertEmail}). Only they can access this chat.`,
+          claimedBy: consultation.assignedExpertName,
+          claimedEmail: consultation.assignedExpertEmail
+        });
+      }
+
+      consultation.assignedExpertEmail = cleanEmail;
+      consultation.assignedExpertName = expertName || consultation.assignedExpertName || 'Agronomist Officer';
+      consultation.assignedExpertId = expertId || consultation.assignedExpertId || 'exp_' + Date.now();
+      consultation.status = 'In Progress';
+      consultation.claimedAt = new Date().toISOString();
+      consultation.updatedAt = new Date().toISOString();
+
+      const activeId = consultation.id || consultation._id;
+      if (!memMessages[activeId]) memMessages[activeId] = [];
+      memMessages[activeId].push({
+        _id: 'msg_sys_' + Date.now(),
+        id: 'msg_sys_' + Date.now(),
+        consultationId: activeId,
+        senderName: 'GoviSahana Desk',
+        senderRole: 'system',
+        senderEmail: 'system@govisahana.lk',
+        text: `👨‍🌾 Agronomist ${consultation.assignedExpertName} has accepted this case. Chat room is now active.`,
+        timestamp: timeStr,
+        createdAt: new Date().toISOString()
+      });
+
+      saveStore();
+      return res.json({ message: 'Consultation claimed successfully', consultation, ...consultation });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to claim consultation', details: err.message });
+  }
+});
+
+// --- Consultations: Release Ticket (Back to Open Queue) ---
+app.post('/api/consultations/:id/release', async (req, res) => {
+  try {
+    const cid = req.params.id;
+    const { expertEmail } = req.body;
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (mongoose.connection.readyState === 1) {
+      let consultation = mongoose.Types.ObjectId.isValid(cid)
+        ? await Consultation.findById(cid)
+        : await Consultation.findOne({ $or: [{ ticketId: cid }, { _id: cid }] });
+      if (!consultation) return res.status(404).json({ error: 'Consultation not found' });
+
+      const prevExpert = consultation.assignedExpertName;
+      consultation.assignedExpertEmail = null;
+      consultation.assignedExpertName = null;
+      consultation.assignedExpertId = null;
+      consultation.status = 'Pending';
+      consultation.claimedAt = null;
+      consultation.updatedAt = new Date();
+      await consultation.save();
+
+      const sysMsg = new Message({
+        consultationId: consultation._id.toString(),
+        senderName: 'GoviSahana Desk',
+        senderRole: 'system',
+        senderEmail: 'system@govisahana.lk',
+        text: `Inquiry released back to open agronomist queue by ${prevExpert || 'officer'}.`,
+        timestamp: timeStr
+      });
+      await sysMsg.save();
+
+      return res.json({ message: 'Consultation released back to queue', consultation });
+    } else {
+      const consultation = memConsultations.find(c => c.id === cid || c._id === cid || c.ticketId === cid);
+      if (!consultation) return res.status(404).json({ error: 'Consultation not found' });
+
+      const prevExpert = consultation.assignedExpertName;
+      consultation.assignedExpertEmail = null;
+      consultation.assignedExpertName = null;
+      consultation.assignedExpertId = null;
+      consultation.status = 'Pending';
+      consultation.claimedAt = null;
+      consultation.updatedAt = new Date().toISOString();
+
+      const activeId = consultation.id || consultation._id;
+      if (!memMessages[activeId]) memMessages[activeId] = [];
+      memMessages[activeId].push({
+        _id: 'msg_sys_' + Date.now(),
+        id: 'msg_sys_' + Date.now(),
+        consultationId: activeId,
+        senderName: 'GoviSahana Desk',
+        senderRole: 'system',
+        senderEmail: 'system@govisahana.lk',
+        text: `Inquiry released back to open agronomist queue by ${prevExpert || 'officer'}.`,
+        timestamp: timeStr,
+        createdAt: new Date().toISOString()
+      });
+
+      saveStore();
+      return res.json({ message: 'Consultation released back to queue', consultation });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to release consultation', details: err.message });
+  }
+});
+
+// --- Consultations: Get Messages ---
 app.get('/api/consultations/:id/messages', async (req, res) => {
   try {
+    const cid = req.params.id;
     if (mongoose.connection.readyState === 1) {
-      const messages = await Message.find({ consultationId: req.params.id }).sort({ createdAt: 1 });
-      return res.json(messages);
+      let consultation = mongoose.Types.ObjectId.isValid(cid)
+        ? await Consultation.findById(cid)
+        : await Consultation.findOne({ $or: [{ ticketId: cid }, { _id: cid }] });
+
+      const targetId = consultation ? consultation._id.toString() : cid;
+      const messages = await Message.find({
+        $or: [{ consultationId: targetId }, { consultationId: cid }]
+      }).sort({ createdAt: 1 });
+
+      return res.json(messages.map(m => ({
+        ...m.toObject(),
+        id: m._id.toString(),
+        _id: m._id.toString()
+      })));
     } else {
-      return res.json(memMessages[req.params.id] || []);
+      const consultation = memConsultations.find(c => c.id === cid || c._id === cid || c.ticketId === cid);
+      const activeId = consultation ? (consultation.id || consultation._id) : cid;
+      const list = memMessages[activeId] || memMessages[cid] || [];
+      return res.json(list);
     }
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch messages', details: err.message });
   }
 });
 
-// Consultations: Send Message
+// --- Consultations: Send Message (Enforces Single Expert Access Rule) ---
 app.post('/api/consultations/:id/messages', async (req, res) => {
   try {
-    const { senderName, senderRole, text, image } = req.body;
+    const cid = req.params.id;
+    const { senderName, senderRole, senderEmail, text, image, prescription } = req.body;
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const cleanEmail = (senderEmail || '').toLowerCase().trim();
 
     if (mongoose.connection.readyState === 1) {
+      let consultation = mongoose.Types.ObjectId.isValid(cid)
+        ? await Consultation.findById(cid)
+        : await Consultation.findOne({ $or: [{ ticketId: cid }, { _id: cid }] });
+
+      if (!consultation) return res.status(404).json({ error: 'Consultation ticket not found' });
+
+      // SINGLE EXPERT ACCESS RULE ENFORCEMENT
+      if (senderRole === 'expert') {
+        if (consultation.assignedExpertEmail && cleanEmail && consultation.assignedExpertEmail.toLowerCase() !== cleanEmail) {
+          return res.status(403).json({
+            error: `Access Denied: This consultation is exclusively assigned to ${consultation.assignedExpertName} (${consultation.assignedExpertEmail}). Only they can reply to this farmer.`,
+            assignedTo: consultation.assignedExpertName,
+            assignedEmail: consultation.assignedExpertEmail
+          });
+        }
+        // If not claimed yet, replying automatically claims it!
+        if (!consultation.assignedExpertEmail) {
+          consultation.assignedExpertEmail = cleanEmail || 'expert@govisahana.lk';
+          consultation.assignedExpertName = senderName || 'Agronomist Officer';
+          consultation.claimedAt = new Date();
+        }
+      }
+
+      if (prescription) {
+        consultation.prescription = prescription;
+        consultation.status = 'Resolved';
+      } else if (consultation.status === 'Pending') {
+        consultation.status = 'In Progress';
+      }
+      consultation.updatedAt = new Date();
+      await consultation.save();
+
       const newMsg = new Message({
-        consultationId: req.params.id,
+        consultationId: consultation._id.toString(),
         senderName: senderName || 'User',
         senderRole: senderRole || 'farmer',
+        senderEmail: cleanEmail,
         text: text || '',
         image: image || null,
+        prescription: prescription || null,
         timestamp: timeStr
       });
       await newMsg.save();
-      await Consultation.findByIdAndUpdate(req.params.id, { $set: { status: 'In Progress' } });
-      return res.status(201).json(newMsg);
+
+      return res.status(201).json({
+        ...newMsg.toObject(),
+        id: newMsg._id.toString(),
+        _id: newMsg._id.toString()
+      });
     } else {
+      const consultation = memConsultations.find(c => c.id === cid || c._id === cid || c.ticketId === cid);
+      if (!consultation) return res.status(404).json({ error: 'Consultation ticket not found' });
+
+      // SINGLE EXPERT ACCESS RULE ENFORCEMENT
+      if (senderRole === 'expert') {
+        if (consultation.assignedExpertEmail && cleanEmail && consultation.assignedExpertEmail.toLowerCase() !== cleanEmail) {
+          return res.status(403).json({
+            error: `Access Denied: This consultation is exclusively assigned to ${consultation.assignedExpertName} (${consultation.assignedExpertEmail}). Only they can reply to this farmer.`,
+            assignedTo: consultation.assignedExpertName,
+            assignedEmail: consultation.assignedExpertEmail
+          });
+        }
+        // If not claimed yet, replying automatically claims it!
+        if (!consultation.assignedExpertEmail) {
+          consultation.assignedExpertEmail = cleanEmail || 'expert@govisahana.lk';
+          consultation.assignedExpertName = senderName || 'Agronomist Officer';
+          consultation.claimedAt = new Date().toISOString();
+        }
+      }
+
+      if (prescription) {
+        consultation.prescription = prescription;
+        consultation.status = 'Resolved';
+      } else if (consultation.status === 'Pending') {
+        consultation.status = 'In Progress';
+      }
+      consultation.updatedAt = new Date().toISOString();
+
+      const activeId = consultation.id || consultation._id;
       const newMsg = {
         _id: 'msg_' + Date.now(),
         id: 'msg_' + Date.now(),
-        consultationId: req.params.id,
+        consultationId: activeId,
         senderName: senderName || 'User',
         senderRole: senderRole || 'farmer',
+        senderEmail: cleanEmail,
         text: text || '',
         image: image || null,
-        timestamp: timeStr
+        prescription: prescription || null,
+        timestamp: timeStr,
+        createdAt: new Date().toISOString()
       };
-      if (!memMessages[req.params.id]) memMessages[req.params.id] = [];
-      memMessages[req.params.id].push(newMsg);
 
-      const target = memConsultations.find(c => c.id === req.params.id || c._id === req.params.id);
-      if (target) target.status = 'In Progress';
+      if (!memMessages[activeId]) memMessages[activeId] = [];
+      memMessages[activeId].push(newMsg);
 
+      saveStore();
       return res.status(201).json(newMsg);
     }
   } catch (err) {
@@ -567,47 +1034,92 @@ app.post('/api/consultations/:id/messages', async (req, res) => {
   }
 });
 
-// Consultations: Issue Prescription
+// --- Consultations: Issue Official Remedy Prescription ---
 app.post('/api/consultations/:id/prescription', async (req, res) => {
   try {
-    const { diagnosis, treatment, dosage, timing, expertName } = req.body;
+    const cid = req.params.id;
+    const rxObj = req.body.prescription || req.body;
+    const diagnosis = rxObj.diagnosis || 'General Agricultural Remedy';
+    const treatment = rxObj.treatment || '';
+    const dosage = rxObj.dosage || '';
+    const timing = rxObj.timing || '';
+    const expertName = rxObj.expertName || req.body.expertName || 'Senior Agronomist';
+    const expertEmail = rxObj.expertEmail || req.body.expertEmail || '';
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const prescription = { diagnosis, treatment, dosage, timing, expertName: expertName || 'Senior Agronomist', issuedAt: new Date() };
+    const cleanEmail = (expertEmail || '').toLowerCase().trim();
+
+    const prescription = {
+      title: rxObj.title || `Official Agronomist Remedy: ${diagnosis}`,
+      diagnosis,
+      treatment,
+      dosage,
+      timing,
+      expertName,
+      issuedAt: new Date(),
+      date: new Date().toLocaleDateString()
+    };
 
     if (mongoose.connection.readyState === 1) {
-      const updatedConsultation = await Consultation.findByIdAndUpdate(
-        req.params.id,
-        { $set: { prescription, status: 'Resolved' } },
-        { new: true }
-      );
-      const systemMsg = new Message({
-        consultationId: req.params.id,
-        senderName: expertName || 'Extension Officer Desk',
+      let consultation = mongoose.Types.ObjectId.isValid(cid)
+        ? await Consultation.findById(cid)
+        : await Consultation.findOne({ $or: [{ ticketId: cid }, { _id: cid }] });
+
+      if (!consultation) return res.status(404).json({ error: 'Consultation ticket not found' });
+
+      // If claimed by another expert, block
+      if (consultation.assignedExpertEmail && cleanEmail && consultation.assignedExpertEmail.toLowerCase() !== cleanEmail) {
+        return res.status(403).json({ error: `Only the assigned expert (${consultation.assignedExpertName}) can issue official prescriptions.` });
+      }
+
+      consultation.prescription = prescription;
+      consultation.status = 'Resolved';
+      consultation.updatedAt = new Date();
+      await consultation.save();
+
+      const rxMsg = new Message({
+        consultationId: consultation._id.toString(),
+        senderName: expertName || consultation.assignedExpertName || 'Agronomist Desk',
         senderRole: 'expert',
+        senderEmail: cleanEmail,
+        prescription: prescription,
         text: `Official Agronomist Prescription Issued for ${diagnosis}. Remedy: ${treatment}`,
         timestamp: timeStr
       });
-      await systemMsg.save();
-      return res.json({ message: 'Prescription issued successfully', consultation: updatedConsultation });
-    } else {
-      const target = memConsultations.find(c => c.id === req.params.id || c._id === req.params.id);
-      if (target) {
-        target.prescription = prescription;
-        target.status = 'Resolved';
-      }
-      const systemMsg = {
-        _id: 'msg_' + Date.now(),
-        id: 'msg_' + Date.now(),
-        consultationId: req.params.id,
-        senderName: expertName || 'Extension Officer Desk',
-        senderRole: 'expert',
-        text: `Official Agronomist Prescription Issued for ${diagnosis}. Remedy: ${treatment}`,
-        timestamp: timeStr
-      };
-      if (!memMessages[req.params.id]) memMessages[req.params.id] = [];
-      memMessages[req.params.id].push(systemMsg);
+      await rxMsg.save();
 
-      return res.json({ message: 'Prescription issued successfully', consultation: target });
+      return res.json({
+        message: 'Prescription issued successfully',
+        consultation: { ...consultation.toObject(), id: consultation._id.toString(), _id: consultation._id.toString() }
+      });
+    } else {
+      const consultation = memConsultations.find(c => c.id === cid || c._id === cid || c.ticketId === cid);
+      if (!consultation) return res.status(404).json({ error: 'Consultation ticket not found' });
+
+      if (consultation.assignedExpertEmail && cleanEmail && consultation.assignedExpertEmail.toLowerCase() !== cleanEmail) {
+        return res.status(403).json({ error: `Only the assigned expert (${consultation.assignedExpertName}) can issue official prescriptions.` });
+      }
+
+      consultation.prescription = prescription;
+      consultation.status = 'Resolved';
+      consultation.updatedAt = new Date().toISOString();
+
+      const activeId = consultation.id || consultation._id;
+      if (!memMessages[activeId]) memMessages[activeId] = [];
+      memMessages[activeId].push({
+        _id: 'msg_rx_' + Date.now(),
+        id: 'msg_rx_' + Date.now(),
+        consultationId: activeId,
+        senderName: expertName || consultation.assignedExpertName || 'Agronomist Desk',
+        senderRole: 'expert',
+        senderEmail: cleanEmail,
+        prescription: prescription,
+        text: `Official Agronomist Prescription Issued for ${diagnosis}. Remedy: ${treatment}`,
+        timestamp: timeStr,
+        createdAt: new Date().toISOString()
+      });
+
+      saveStore();
+      return res.json({ message: 'Prescription issued successfully', consultation, ...consultation });
     }
   } catch (err) {
     res.status(500).json({ error: 'Failed to issue prescription', details: err.message });
@@ -635,14 +1147,14 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(ROOT_DIR, 'index.html'));
 });
 
-// Start server if running directly (not in Vercel serverless)
+// Start server if running directly
 if (!process.env.VERCEL) {
   ensureDbConnection().finally(() => {
     app.listen(PORT, () => {
       console.log(`🌾 GoviSahana Platform is live!`);
       console.log(`   ➜ Local:   http://localhost:${PORT}`);
       console.log(`   ➜ API:     http://localhost:${PORT}/api/health`);
-      console.log(`   ➜ DB Mode: ${isDbConnected ? 'MongoDB Atlas Connected' : 'In-Memory Fallback'}`);
+      console.log(`   ➜ DB Mode: ${isDbConnected ? 'MongoDB Atlas Connected' : 'Persistent File Store (server/data/store.json)'}`);
     });
   });
 }

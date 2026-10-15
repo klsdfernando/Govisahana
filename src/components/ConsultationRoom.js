@@ -1,236 +1,438 @@
-// Consultation Room Chat Interface Component with Header, Timeline, Photo Attachment, & Remedies
+// Consultation Room Chat Interface Component
+// Enforces single-expert exclusive lock, real-time message sync, photo attachments, and prescription issuance
 import { useState, useRef, useEffect } from 'react';
 
-export default function ConsultationRoom({ consultation, messages, onSendMessage, onBackToDashboard }) {
-  const [inputText, setInputText] = useState('');
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [zoomImage, setZoomImage] = useState(null);
+const API_BASE = '';
+
+const PRESET_DIAGNOSES = [
+  {
+    name: 'Paddy Blast (Pyricularia oryzae)',
+    crop: 'Paddy',
+    treatment: 'Tricyclazole 75% WP or Azoxystrobin',
+    dosage: '10g - 12g per 16L knapsack sprayer',
+    timing: 'Spray early morning or late afternoon after light dew evaporates.'
+  },
+  {
+    name: 'Brown Plant Hopper (Nilaparvata lugens)',
+    crop: 'Paddy',
+    treatment: 'Pymetrozine 50% WDG or Dinotefuran 20% SG',
+    dosage: '12g per 16L tank; ensure nozzle reaches base of stem.',
+    timing: 'Drain standing water 3-4 days before spraying.'
+  },
+  {
+    name: 'Chili Leaf Curl Virus (Whitefly Vector)',
+    crop: 'Chili',
+    treatment: 'Imidacloprid 200 SL or Acetamiprid 20% SP',
+    dosage: '5ml - 7ml per 10L water; add sticker solution.',
+    timing: 'Target underside of leaves where whiteflies colonize.'
+  },
+  {
+    name: 'Coconut Black Headed Caterpillar',
+    crop: 'Coconut',
+    treatment: 'Neem-based organic repellant + Parasitoid release (Goniozus nephantidis)',
+    dosage: '30ml neem oil + 5g soap in 10L water',
+    timing: 'Spray lower fronds; coordinate with CRI for parasitoid wasp release.'
+  }
+];
+
+export default function ConsultationRoom({
+  consultation,
+  onSendMessage,
+  onClaimTicket,
+  onReleaseTicket,
+  onIssuePrescription,
+  onBackToDashboard,
+  currentUser
+}) {
+  const [text, setText] = useState('');
+  const [photo, setPhoto] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [prescriptionDiagnosis, setPrescriptionDiagnosis] = useState('');
+  const [prescriptionTreatment, setPrescriptionTreatment] = useState('');
+  const [prescriptionDosage, setPrescriptionDosage] = useState('');
+  const [prescriptionTiming, setPrescriptionTiming] = useState('');
+
+  const [currentConsultation, setCurrentConsultation] = useState(consultation || {});
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef(null);
+
+  const activeId = consultation?._id || consultation?.id || '';
+  const isExpert = currentUser?.role === 'expert';
+  const isFarmer = currentUser?.role === 'farmer';
+
+  const currentEmail = (currentUser?.email || '').toLowerCase().trim();
+  const assignedEmail = (currentConsultation?.assignedExpertEmail || '').toLowerCase().trim();
+
+  const isUnassigned = !assignedEmail || currentConsultation?.status === 'Pending';
+  const isClaimedByMe = isExpert && assignedEmail && assignedEmail === currentEmail;
+  const isClaimedByOther = isExpert && assignedEmail && assignedEmail !== currentEmail;
+
+  // Real-time polling function
+  const syncChatData = async () => {
+    if (!activeId) return;
+    try {
+      const [msgRes, conRes] = await Promise.all([
+        fetch(`${API_BASE}/api/consultations/${activeId}/messages`),
+        fetch(`${API_BASE}/api/consultations/${activeId}`)
+      ]);
+      if (msgRes.ok) {
+        const msgData = await msgRes.json();
+        if (Array.isArray(msgData)) setMessages(msgData);
+      }
+      if (conRes.ok) {
+        const conData = await conRes.json();
+        if (conData && (conData._id || conData.id)) setCurrentConsultation(conData);
+      }
+    } catch (err) {
+      // Polling fallback
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setIsLoading(true);
+    syncChatData();
+    const timer = setInterval(syncChatData, 2500);
+    return () => clearInterval(timer);
+  }, [activeId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  if (!consultation) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6 text-center">
-        <div>
-          <p className="text-xl font-bold text-gray-700">No active consultation selected.</p>
-          <button
-            onClick={onBackToDashboard}
-            className="mt-4 px-4 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold"
-          >
-            ← Back to Farmer Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!inputText.trim() && !selectedPhoto) return;
+    if ((!text.trim() && !photo) || sending) return;
+    if (isClaimedByOther) return; // Enforce single-expert lock
 
-    onSendMessage(consultation.id, {
-      id: `msg_${Date.now()}`,
-      senderId: 'usr_farmer_1',
-      senderRole: 'farmer',
-      senderName: 'Sunil Rathnayake',
-      text: inputText,
-      image: selectedPhoto,
+    const payload = {
+      senderName: currentUser?.name || 'User',
+      senderRole: currentUser?.role || 'farmer',
+      senderEmail: currentUser?.email || '',
+      text: text.trim(),
+      image: photo
+    };
+
+    setSending(true);
+    setText('');
+    setPhoto(null);
+
+    // Optimistic message append
+    const tempMsg = {
+      id: `temp_${Date.now()}`,
+      _id: `temp_${Date.now()}`,
+      consultationId: activeId,
+      ...payload,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      type: 'user'
-    });
+      createdAt: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, tempMsg]);
 
-    setInputText('');
-    setSelectedPhoto(null);
+    if (onSendMessage) {
+      const savedMsg = await onSendMessage(activeId, payload);
+      if (savedMsg) {
+        syncChatData();
+      }
+    } else {
+      try {
+        await fetch(`${API_BASE}/api/consultations/${activeId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        syncChatData();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setSending(false);
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedPhoto(reader.result);
-      };
-      reader.readAsDataURL(file);
+  const handlePresetSelect = (preset) => {
+    setPrescriptionDiagnosis(preset.name);
+    setPrescriptionTreatment(preset.treatment);
+    setPrescriptionDosage(preset.dosage);
+    setPrescriptionTiming(preset.timing);
+  };
+
+  const handleIssuePrescriptionSubmit = async (e) => {
+    e.preventDefault();
+    if (!prescriptionDiagnosis || !prescriptionTreatment) return;
+    const rx = {
+      diagnosis: prescriptionDiagnosis,
+      treatment: prescriptionTreatment,
+      dosage: prescriptionDosage,
+      timing: prescriptionTiming,
+      expertName: currentUser?.name || 'Senior Agronomist',
+      expertEmail: currentUser?.email || 'nimal@govisahana.lk'
+    };
+
+    if (onIssuePrescription) {
+      const ok = await onIssuePrescription(activeId, rx);
+      if (ok) {
+        setIsPrescriptionModalOpen(false);
+        syncChatData();
+      }
+    } else {
+      try {
+        const res = await fetch(`${API_BASE}/api/consultations/${activeId}/prescription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prescription: rx, expertEmail: currentUser?.email })
+        });
+        if (res.ok) {
+          setIsPrescriptionModalOpen(false);
+          syncChatData();
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
-  const expert = consultation.assignedExpert;
+  const handleClaimClick = async () => {
+    if (onClaimTicket) {
+      const ok = await onClaimTicket(activeId);
+      if (ok) syncChatData();
+    } else {
+      try {
+        const res = await fetch(`${API_BASE}/api/consultations/${activeId}/claim`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            expertId: currentUser?.id || 'exp_1',
+            expertName: currentUser?.name || 'Dr. Nimal Jayasinghe',
+            expertEmail: currentUser?.email || 'nimal@govisahana.lk'
+          })
+        });
+        if (res.ok) syncChatData();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleReleaseClick = async () => {
+    if (!confirm('Are you sure you want to release this consultation back to the open agronomist desk?')) return;
+    if (onReleaseTicket) {
+      const ok = await onReleaseTicket(activeId);
+      if (ok) syncChatData();
+    } else {
+      try {
+        const res = await fetch(`${API_BASE}/api/consultations/${activeId}/release`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ expertEmail: currentUser?.email })
+        });
+        if (res.ok) syncChatData();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const expertDisplayName = currentConsultation?.assignedExpertName || 'Agronomist';
+  const isResolved = currentConsultation?.status === 'Resolved';
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-slate-100">
       
-      {/* Consultation Room Header */}
-      <div className="bg-white border-b border-gray-200 p-4 shadow-sm z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          
-          {/* Back button & Expert info */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBackToDashboard}
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition font-bold text-xs flex items-center gap-1"
-            >
-              <span>←</span>
-              <span className="hidden sm:inline">Dashboard</span>
-            </button>
+      {/* Header Controls */}
+      <div className="bg-white border-b border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 z-10">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button 
+            onClick={onBackToDashboard} 
+            className="px-3 py-1.5 rounded-xl border border-slate-300 font-bold text-xs bg-slate-50 hover:bg-slate-100 text-slate-700 transition shrink-0 cursor-pointer"
+          >
+            ← Dashboard
+          </button>
 
-            {expert ? (
-              <div className="flex items-center gap-3 border-l border-gray-200 pl-3">
-                <div className="relative">
-                  <img
-                    src={expert.avatar}
-                    alt={expert.name}
-                    className="w-11 h-11 rounded-full object-cover border-2 border-emerald-600 shadow-sm"
-                  />
-                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></span>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900">{expert.name}</h3>
-                    <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded flex items-center gap-0.5">
-                      ✓ Verified Expert
+          <div className="flex items-center gap-2.5 border-l border-slate-200 pl-3">
+            {currentConsultation?.assignedExpertName ? (
+              <div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900">{expertDisplayName}</h3>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-300 font-bold">
+                    ✓ Extension Officer
+                  </span>
+                  {isClaimedByMe && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded border border-emerald-300">
+                      Assigned to You
                     </span>
-                  </div>
-                  <p className="text-xs text-gray-500 font-medium">
-                    {expert.specialization} • {expert.department}
-                  </p>
+                  )}
+                  {isClaimedByOther && (
+                    <span className="text-[10px] bg-red-100 text-red-800 font-extrabold px-1.5 py-0.5 rounded border border-red-300 flex items-center gap-1">
+                      🔒 Locked to Colleague
+                    </span>
+                  )}
                 </div>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {currentConsultation?.ticketId} • {currentConsultation?.cropLabel || 'Crop'} • {currentConsultation?.farmerDistrict} District
+                </p>
               </div>
             ) : (
-              <div className="border-l border-gray-200 pl-3">
-                <h3 className="font-bold text-sm text-slate-900">Consultation Session: {consultation.ticketId}</h3>
-                <p className="text-xs text-amber-700">Waiting for agricultural officer assignment...</p>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-black text-sm border border-amber-300">
+                  ⏳
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-amber-800">Waiting for Agricultural Specialist</h3>
+                  <p className="text-[11px] text-slate-500">Ticket: {currentConsultation?.ticketId} • Farmer: {currentConsultation?.farmerName}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Bar based on Role & Claim state */}
+        <div className="flex items-center gap-2 self-end sm:self-center flex-wrap">
+          {isExpert && isUnassigned && (
+            <button 
+              onClick={handleClaimClick} 
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow transition transform hover:scale-105 flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>✋</span>
+              <span>Claim Consultation</span>
+            </button>
+          )}
+
+          {isExpert && isClaimedByMe && (
+            <>
+              {!isResolved && (
+                <button 
+                  onClick={() => setIsPrescriptionModalOpen(true)} 
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow transition flex items-center gap-1 cursor-pointer"
+                >
+                  <span>📋</span>
+                  <span>Issue Official Remedy</span>
+                </button>
+              )}
+              {!isResolved && (
+                <button 
+                  onClick={handleReleaseClick} 
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition cursor-pointer"
+                  title="Release this inquiry back to the pool"
+                >
+                  ⇄ Release
+                </button>
+              )}
+            </>
+          )}
+
+          {isResolved && (
+            <span className="px-3 py-1.5 bg-blue-100 text-blue-800 border border-blue-300 font-extrabold text-xs rounded-xl flex items-center gap-1">
+              <span>✔️</span>
+              <span>Resolved with Remedy</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Main Chat Stream */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          
+          {/* Initial Ticket Inscription Card */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm text-xs">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+              <span className="font-extrabold text-emerald-800 uppercase text-[10px] tracking-wider">
+                Farmer Advisory Ticket Brief
+              </span>
+              <span className="font-mono text-slate-500 font-bold">{currentConsultation?.ticketId}</span>
+            </div>
+            <h4 className="font-extrabold text-slate-900 text-sm mb-1">{currentConsultation?.title}</h4>
+            <p className="text-slate-600 leading-relaxed">{currentConsultation?.description}</p>
+            {currentConsultation?.sampleImage && (
+              <div className="mt-3">
+                <img 
+                  src={currentConsultation.sampleImage} 
+                  alt="Crop issue" 
+                  className="rounded-xl max-h-48 object-cover border border-slate-200 shadow-sm cursor-pointer hover:opacity-95" 
+                  onClick={() => window.open(currentConsultation.sampleImage, '_blank')}
+                />
               </div>
             )}
           </div>
 
-          {/* Ticket Meta & Quick Actions */}
-          <div className="flex items-center gap-2">
-            <div className="hidden lg:block text-right">
-              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                {consultation.cropLabel} Crop
-              </span>
-              <p className="text-[10px] text-gray-500 mt-0.5">Channel: {consultation.channel}</p>
-            </div>
+          {/* Messages list */}
+          {messages.map((msg, idx) => {
+            const isSys = msg.senderRole === 'system';
+            const isMsgRx = !!msg.prescription;
 
-            <button
-              onClick={() => alert("Initiating encrypted Voice Call with Agronomist...")}
-              className="p-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
-            >
-              <span>📞</span>
-              <span className="hidden sm:inline">Voice Call</span>
-            </button>
-            <button
-              onClick={() => alert("Initiating HD Video Consultation...")}
-              className="p-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
-            >
-              <span>📹</span>
-              <span className="hidden sm:inline">Video</span>
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Ticket Details Summary Bar */}
-      <div className="bg-emerald-900 text-emerald-100 px-4 py-2 text-xs border-b border-emerald-800">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 truncate">
-            <span className="font-extrabold text-amber-300">Ticket #{consultation.ticketId}:</span>
-            <span className="font-medium truncate">{consultation.title}</span>
-          </div>
-          <span className="font-bold bg-emerald-800 px-2 py-0.5 rounded text-[11px]">
-            Status: {consultation.status}
-          </span>
-        </div>
-      </div>
-
-      {/* Message Timeline Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 chat-scroll space-y-4">
-        <div className="max-w-4xl mx-auto space-y-4">
-          
-          {/* System Welcome Badge */}
-          <div className="text-center my-4">
-            <span className="inline-block bg-white border border-gray-200 shadow-sm text-gray-600 text-xs px-3.5 py-1.5 rounded-full font-medium">
-              🔒 Encrypted Agricultural Session Started • Sri Lanka Dept of Agriculture
-            </span>
-          </div>
-
-          {messages.map((msg) => {
-            const isFarmer = msg.senderRole === 'farmer';
-            const isPrescription = msg.type === 'prescription';
-
-            if (isPrescription) {
+            if (isSys) {
               return (
-                <div key={msg.id} className="flex justify-start my-4">
-                  <div className="max-w-xl w-full bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 shadow-md">
-                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-amber-200">
-                      <span className="text-xl">📜</span>
-                      <div>
-                        <h4 className="font-black text-amber-950 text-sm">{msg.prescription.title}</h4>
-                        <p className="text-[10px] text-amber-800 font-semibold">Issued by {msg.senderName}</p>
-                      </div>
-                    </div>
+                <div key={msg._id || msg.id || idx} className="text-center my-2">
+                  <span className="inline-block px-3 py-1 rounded-full bg-slate-200 text-slate-700 text-[11px] font-bold">
+                    {msg.text}
+                  </span>
+                </div>
+              );
+            }
 
-                    <div className="space-y-2 text-xs">
-                      <div>
-                        <span className="font-bold text-amber-900">Treatment: </span>
-                        <span className="text-gray-800 font-semibold">{msg.prescription.treatment}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-amber-900">Dosage Rate: </span>
-                        <span className="text-gray-800 font-semibold">{msg.prescription.dosage}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-amber-900">Application Timing: </span>
-                        <span className="text-gray-800">{msg.prescription.timing}</span>
-                      </div>
-                      <div className="bg-amber-100 p-2 rounded-lg text-amber-900 text-[11px] font-medium border border-amber-200">
-                        ⚠️ <span className="font-bold">Precaution: </span>{msg.prescription.precaution}
-                      </div>
+            if (isMsgRx) {
+              const rx = msg.prescription || {};
+              return (
+                <div key={msg._id || msg.id || idx} className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-5 shadow-md max-w-xl mx-auto">
+                  <div className="flex items-center justify-between border-b border-amber-200 pb-3 mb-3">
+                    <div>
+                      <span className="text-[10px] font-black uppercase text-amber-900 bg-amber-200 px-2 py-0.5 rounded">
+                        Official Agronomist Remedy Card
+                      </span>
+                      <h4 className="font-black text-amber-950 text-base mt-1">{rx.title || rx.diagnosis || 'Official Remedy'}</h4>
                     </div>
+                    <button onClick={() => window.print()} className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-lg shadow transition cursor-pointer">
+                      Print Card
+                    </button>
+                  </div>
 
-                    <div className="mt-3 text-right text-[10px] text-amber-700 font-bold">
-                      {msg.timestamp}
+                  <div className="space-y-2.5 text-xs text-slate-800">
+                    <div>
+                      <span className="font-extrabold text-amber-900">Target Treatment / Chemical:</span>
+                      <p className="font-bold text-slate-900 text-sm bg-white p-2.5 rounded-xl border border-amber-300 mt-0.5">{rx.treatment}</p>
                     </div>
+                    <div>
+                      <span className="font-extrabold text-amber-900">Mixing Ratio & Dosage:</span>
+                      <p className="font-semibold text-slate-700">{rx.dosage}</p>
+                    </div>
+                    <div>
+                      <span className="font-extrabold text-amber-900">Timing & Safety Warnings:</span>
+                      <p className="font-semibold text-slate-700">{rx.timing}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-amber-200 flex items-center justify-between text-[11px] font-bold text-amber-900">
+                    <span>Issued By: {rx.expertName || expertDisplayName}</span>
+                    <span>{rx.date || 'Today'}</span>
                   </div>
                 </div>
               );
             }
 
             return (
-              <div key={msg.id} className={`flex ${isFarmer ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-md sm:max-w-lg rounded-2xl p-4 shadow-sm ${
-                  isFarmer
-                    ? 'bg-emerald-700 text-white rounded-tr-none'
-                    : 'bg-white border border-gray-200 text-slate-900 rounded-tl-none'
+              <div key={msg._id || msg.id || idx} className={`flex ${msg.senderRole === 'farmer' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-md rounded-2xl p-3.5 shadow-sm ${
+                  msg.senderRole === 'farmer' 
+                    ? 'bg-emerald-700 text-white font-medium' 
+                    : 'bg-white text-slate-900 border border-slate-200'
                 }`}>
-                  
-                  <div className="flex items-center justify-between gap-3 mb-1 text-[11px] font-bold opacity-80">
-                    <span>{msg.senderName}</span>
+                  <div className={`text-[10px] font-bold mb-1 flex items-center justify-between gap-3 ${
+                    msg.senderRole === 'farmer' ? 'text-emerald-100' : 'text-slate-500'
+                  }`}>
+                    <span>{msg.senderName} ({msg.senderRole === 'expert' ? 'Agronomist' : 'Farmer'})</span>
                     <span>{msg.timestamp}</span>
                   </div>
-
                   {msg.image && (
-                    <div className="my-2 cursor-pointer relative group" onClick={() => setZoomImage(msg.image)}>
-                      <img
-                        src={msg.image}
-                        alt="Crop Attachment"
-                        className="rounded-xl max-h-56 w-full object-cover border border-emerald-300 shadow"
-                      />
-                      <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-                        🔍 Click to Zoom
-                      </span>
-                    </div>
+                    <img 
+                      src={msg.image} 
+                      alt="Crop photo attachment" 
+                      className="rounded-xl max-h-60 w-full object-cover mb-2 border border-slate-200 shadow cursor-pointer hover:opacity-95 transition"
+                      onClick={() => window.open(msg.image, '_blank')}
+                    />
                   )}
-
-                  <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium">
-                    {msg.text}
-                  </p>
-
+                  <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                 </div>
               </div>
             );
@@ -240,90 +442,152 @@ export default function ConsultationRoom({ consultation, messages, onSendMessage
         </div>
       </div>
 
-      {/* Quick Prompt Suggestions */}
-      <div className="bg-slate-200/70 border-t border-gray-200 px-4 py-2">
-        <div className="max-w-4xl mx-auto flex items-center gap-2 overflow-x-auto text-xs">
-          <span className="text-gray-500 font-bold text-[11px] shrink-0">Quick Prompts:</span>
-          {[
-            "Sent leaf photo",
-            "When should I spray?",
-            "Can I use organic compost?",
-            "Request voice call"
-          ].map((prompt, i) => (
-            <button
-              key={i}
-              onClick={() => setInputText(prompt)}
-              className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-900 rounded-full border border-gray-300 text-[11px] font-semibold shrink-0 transition"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Photo Preview Strip if selected */}
-      {selectedPhoto && (
-        <div className="bg-emerald-50 p-2 border-t border-emerald-200 flex items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <img src={selectedPhoto} alt="Selected" className="w-10 h-10 rounded-lg object-cover border border-emerald-400" />
-            <span className="text-xs font-bold text-emerald-900">Crop Photo Ready to Send</span>
-          </div>
-          <button
-            onClick={() => setSelectedPhoto(null)}
-            className="text-xs text-red-600 font-bold hover:underline"
-          >
-            Remove
-          </button>
+      {/* Photo attachment preview bar */}
+      {photo && (
+        <div className="bg-emerald-50 p-2 px-4 border-t border-emerald-200 flex items-center justify-between max-w-3xl mx-auto w-full">
+          <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+            <span>📷</span>
+            <span>Crop Photo Attached (Ready to Send)</span>
+          </span>
+          <button onClick={() => setPhoto(null)} className="text-xs text-red-600 font-bold hover:underline cursor-pointer">Remove</button>
         </div>
       )}
 
-      {/* Input Toolbar & Area */}
-      <div className="bg-white border-t border-gray-200 p-3 sm:p-4">
-        <form onSubmit={handleSend} className="max-w-4xl mx-auto flex items-center gap-2">
-          
-          {/* Upload Photo Button (Crucial Requirement) */}
-          <label className="p-2.5 rounded-xl bg-gray-100 hover:bg-emerald-100 text-gray-700 hover:text-emerald-900 border border-gray-300 cursor-pointer transition flex items-center justify-center shrink-0">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
+      {/* Message Input Controls or Single-Expert Locked Banner */}
+      <div className="bg-white border-t border-slate-200 p-3">
+        {isClaimedByOther ? (
+          <div className="max-w-3xl mx-auto text-center py-2">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-300 text-red-700 font-bold text-xs">
+              <span>🔒</span>
+              <span>Chat Input Locked — Exclusively assigned to {currentConsultation.assignedExpertName}. Only they can reply to this farmer.</span>
+            </span>
+          </div>
+        ) : (
+          <form onSubmit={handleSend} className="max-w-3xl mx-auto flex gap-2">
+            <label className="p-2.5 rounded-xl bg-slate-100 border border-slate-300 cursor-pointer hover:bg-slate-200 transition flex items-center justify-center shrink-0">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPhoto(reader.result);
+                    reader.readAsDataURL(file);
+                  }
+                }} 
+                className="hidden" 
+              />
+              <span>📷</span>
+            </label>
+            <input 
+              type="text" 
+              value={text} 
+              onChange={(e) => setText(e.target.value)} 
+              placeholder={isExpert ? "Type agronomist advisory reply..." : "Ask your agricultural question..."} 
+              className="flex-1 px-4 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm outline-none font-medium bg-slate-50 focus:bg-white focus:border-emerald-600 transition" 
             />
-            <span className="text-lg">📷</span>
-          </label>
-
-          {/* Text Input */}
-          <input
-            type="text"
-            placeholder="Type your message or crop query here... (මෙහි පණිවිඩය සටහන් කරන්න)"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-600 outline-none font-medium bg-slate-50"
-          />
-
-          {/* Send Button */}
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-1.5 shrink-0"
-          >
-            <span>Send</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-
-        </form>
+            <button 
+              type="submit" 
+              disabled={sending || (!text.trim() && !photo)}
+              className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow transition shrink-0 cursor-pointer"
+            >
+              {sending ? '...' : 'Send'}
+            </button>
+          </form>
+        )}
       </div>
 
-      {/* Full Image Zoom Modal */}
-      {zoomImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setZoomImage(null)}
-        >
-          <div className="max-w-3xl max-h-[90vh] relative">
-            <img src={zoomImage} alt="Zoomed Crop" className="max-h-[85vh] rounded-2xl object-contain shadow-2xl mx-auto" />
-            <p className="text-center text-white text-xs mt-2 font-bold">Tap anywhere to close zoom</p>
+      {/* Prescription Modal for Experts */}
+      {isPrescriptionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
+            <div className="bg-gradient-to-r from-amber-900 to-amber-950 p-5 text-white flex items-center justify-between">
+              <h3 className="font-extrabold text-lg text-white">Issue Official Agronomist Remedy</h3>
+              <button onClick={() => setIsPrescriptionModalOpen(false)} className="w-8 h-8 rounded-full bg-amber-800 text-white font-bold text-sm hover:bg-amber-700 transition">✕</button>
+            </div>
+
+            <form onSubmit={handleIssuePrescriptionSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Select Preset Diagnosis</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {PRESET_DIAGNOSES.map((p, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handlePresetSelect(p)}
+                      className="text-left p-2.5 rounded-xl border border-slate-200 hover:border-amber-500 bg-slate-50 hover:bg-amber-50/50 text-xs transition"
+                    >
+                      <span className="font-bold text-slate-900 block">{p.name}</span>
+                      <span className="text-[10px] text-slate-500">{p.crop}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Diagnosis / Pest Name</label>
+                <input
+                  type="text"
+                  value={prescriptionDiagnosis}
+                  onChange={(e) => setPrescriptionDiagnosis(e.target.value)}
+                  placeholder="e.g. Paddy Blast Disease (Pyricularia oryzae)"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 outline-none focus:border-amber-600 bg-slate-50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Recommended Treatment / Chemical</label>
+                <input
+                  type="text"
+                  value={prescriptionTreatment}
+                  onChange={(e) => setPrescriptionTreatment(e.target.value)}
+                  placeholder="e.g. Tricyclazole 75% WP or Azoxystrobin"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 outline-none focus:border-amber-600 bg-slate-50"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Mixing Ratio & Dosage</label>
+                  <input
+                    type="text"
+                    value={prescriptionDosage}
+                    onChange={(e) => setPrescriptionDosage(e.target.value)}
+                    placeholder="e.g. 10g - 12g per 16L knapsack sprayer"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-amber-600 bg-slate-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Application Timing & Weather</label>
+                  <input
+                    type="text"
+                    value={prescriptionTiming}
+                    onChange={(e) => setPrescriptionTiming(e.target.value)}
+                    placeholder="e.g. Spray early morning after dew dries"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-amber-600 bg-slate-50"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPrescriptionModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow transition"
+                >
+                  Issue Remedy Card & Close Ticket
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { CROP_TYPES } from '../data/mockData';
 
-export default function NewTicketModal({ isOpen, onClose, onSubmitTicket }) {
+export default function NewTicketModal({ isOpen, onClose, onSubmitTicket, currentUser }) {
   const [title, setTitle] = useState('');
   const [cropType, setCropType] = useState('paddy');
   const [description, setDescription] = useState('');
@@ -32,18 +32,21 @@ export default function NewTicketModal({ isOpen, onClose, onSubmitTicket }) {
     const newTicket = {
       id: `con_${Date.now()}`,
       ticketId: `GS-2026-${Math.floor(100 + Math.random() * 900)}`,
-      farmerId: 'usr_farmer_1',
-      farmerName: 'Sunil Rathnayake',
-      farmerDistrict: 'Anuradhapura',
-      farmerPhone: '+94 77 555 1212',
+      farmerId: currentUser?.id || 'usr_farmer_1',
+      farmerName: currentUser?.name || 'Sunil Rathnayake',
+      farmerDistrict: currentUser?.district || 'Anuradhapura',
+      farmerEmail: currentUser?.email || 'sunil@farmer.lk',
+      farmerPhone: currentUser?.phone || '+94 77 555 1212',
       title,
       cropType,
       cropLabel: selectedCropObj.name.split(' ')[0],
       description,
       channel,
-      status: 'Requested',
+      status: 'Pending',
       urgency,
       assignedExpert: null,
+      assignedExpertName: null,
+      assignedExpertEmail: null,
       createdAt: 'Just now',
       lastActivity: 'Just now',
       sampleImage: photoPreview || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=800&q=80'

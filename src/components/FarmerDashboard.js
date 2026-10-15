@@ -13,31 +13,31 @@ export default function FarmerDashboard({ consultations, onOpenNewTicketModal, o
     switch (status) {
       case 'In Progress':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 pulse-badge">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
             <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
             In Progress
           </span>
         );
-      case 'Accepted':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-            <span>✓</span> Accepted
-          </span>
-        );
+      case 'Pending':
       case 'Requested':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            <span>⏳</span> Waiting for Expert
+            <span>⏳</span> Waiting for Specialist
           </span>
         );
+      case 'Resolved':
       case 'Completed':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">
-            <span>✔️</span> Resolved
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+            <span>✔️</span> Resolved (Remedy Issued)
           </span>
         );
       default:
-        return null;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+            {status}
+          </span>
+        );
     }
   };
 
@@ -213,17 +213,15 @@ export default function FarmerDashboard({ consultations, onOpenNewTicketModal, o
 
                   {/* Right Assigned Expert & Action */}
                   <div className="flex flex-col sm:flex-row md:flex-col items-end justify-between md:justify-center gap-3 border-t md:border-t-0 md:border-l border-gray-200 pt-3 md:pt-0 md:pl-5 shrink-0">
-                    {item.assignedExpert ? (
+                    {item.assignedExpertName || item.assignedExpert ? (
                       <div className="flex items-center gap-2 text-right">
                         <div>
-                          <p className="text-xs font-bold text-slate-900">{item.assignedExpert.name}</p>
-                          <p className="text-[10px] text-gray-500 max-w-[140px] truncate">{item.assignedExpert.department}</p>
+                          <p className="text-xs font-bold text-slate-900">{item.assignedExpertName || item.assignedExpert?.name}</p>
+                          <p className="text-[10px] text-gray-500 max-w-[140px] truncate">Agricultural Extension Specialist</p>
                         </div>
-                        <img
-                          src={item.assignedExpert.avatar}
-                          alt={item.assignedExpert.name}
-                          className="w-9 h-9 rounded-full object-cover border border-emerald-400"
-                        />
+                        <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm border border-emerald-400">
+                          👨‍🌾
+                        </div>
                       </div>
                     ) : (
                       <div className="text-xs text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-medium">
@@ -233,12 +231,12 @@ export default function FarmerDashboard({ consultations, onOpenNewTicketModal, o
 
                     <button
                       onClick={() => {
-                        onSelectConsultation(item.id);
+                        onSelectConsultation(item._id || item.id);
                         setActiveView('consultation_room');
                       }}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5"
+                      className="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <span>{item.status === 'In Progress' ? 'Join Active Chat' : 'View Details'}</span>
+                      <span>{item.status === 'In Progress' ? 'Open Chat Room' : 'View Consultation'}</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                       </svg>
