@@ -192,7 +192,24 @@ async function sendOtpEmail(email, code) {
     </div>
   `;
 
-  // 1. Try Resend HTTPS API first
+  // 1. Try Gmail SMTP first (works on any cloud server — no domain restriction)
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    try {
+      const mailOptions = {
+        from: `"GoviSahana 🌾" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your GoviSahana Verification Code',
+        html: emailHtml
+      };
+      const result = await transporter.sendMail(mailOptions);
+      console.log(`✉️ OTP email delivered via Gmail SMTP to ${email}`);
+      return result;
+    } catch (smtpErr) {
+      console.warn(`Gmail SMTP failed (${smtpErr.message}), trying Resend fallback...`);
+    }
+  }
+
+  // 2. Fallback to Resend HTTPS API (free tier: only sends to verified account email)
   if (resend) {
     try {
       const response = await resend.emails.send({
@@ -204,25 +221,14 @@ async function sendOtpEmail(email, code) {
       if (response && response.error) {
         throw new Error(response.error.message || 'Resend API returned error');
       }
-      console.log(`🚀 Real email delivered via Resend to ${email} (ID: ${response.data?.id})`);
+      console.log(`🚀 Email delivered via Resend to ${email} (ID: ${response.data?.id})`);
       return response;
     } catch (apiErr) {
-      console.warn(`Resend attempt failed (${apiErr.message}), trying SMTP fallback...`);
+      console.warn(`Resend also failed (${apiErr.message}).`);
     }
   }
 
-  // 2. Fallback to Nodemailer SMTP
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    const mailOptions = {
-      from: `"GoviSahana 🌾" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Your GoviSahana Verification Code',
-      html: emailHtml
-    };
-    return transporter.sendMail(mailOptions);
-  }
-
-  throw new Error('No email service configured (Resend API key or Gmail SMTP not provided).');
+  throw new Error('No email service configured. Please set EMAIL_USER, EMAIL_PASS, or RESEND_API_KEY.');
 }
 
 // --- REST API ENDPOINTS ---
